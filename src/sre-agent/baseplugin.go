@@ -28,7 +28,7 @@ func baseMeasure() string {
 }
 
 func pluginMaker(context types.Context, duration time.Duration, pName string, plugin types.FPlugin, measure types.FuncMeasure) {
-	logrecord := p.Sprintf("PluginMaker context [%v] with duration %v name: %s and function %#v with function_measure %#v\n", context, duration, pName, plugin, measure)
+	logrecord := p.Sprintf("PluginMaker context [%#v] with duration %v name: %s and function %#v with function_measure %#v\n", context, duration, pName, plugin, measure)
 	log.Print(logrecord)
 	pRuntime := types.PluginRuntime{Ticker: time.NewTicker(duration), PluginName: pName}
 	pContext := context
@@ -47,7 +47,7 @@ func basePlugin(myParentContext types.Context, myName string, ticker *time.Ticke
         	myContext.RequestId = uuid.New().String()
 		myContext.ParentId  = ""
 		myMeasure := measure()
-		log.Printf("%20s Tick at %f measure: [%v] context: [%v]\n", myName, float64(t.UTC().UnixNano())/1e9, myMeasure, myContext)
+		log.Printf("%20s Tick at %f measure: [%#v] context: [%#v]\n", myName, float64(t.UTC().UnixNano())/1e9, myMeasure, myContext)
 		messageMetric.With(prometheus.Labels{"plugin":myName}).Inc()
 		bytesMetric.With(prometheus.Labels{"plugin":myName}).Add(float64(len(myMeasure)))
 	}
