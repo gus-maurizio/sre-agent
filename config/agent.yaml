@@ -1,0 +1,22 @@
+a:			This is a test
+defaulttimeunit:	Milliseconds
+defaulttimetick:	10
+prometheusport:		9000
+prometheushandle:	/metrics
+# config of runtime
+applicationid:		ASVMYNAME
+moduleid:		go.agent
+versionid:		1.0.0.a
+environmentid:		Production
+# plugin section
+plugins:
+  - pluginname:		MyPlugin
+    pluginmodule:	./plugin/MyPlugin.so
+    plugintimeunit:	Seconds
+    plugintimetick:	1
+#
+  - pluginname:		MyCPUPlugin
+    pluginmodule:	./plugin/MyPlugin.so
+    plugintimeunit:	Milliseconds
+    plugintimetick:	50
+#
