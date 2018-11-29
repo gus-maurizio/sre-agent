@@ -25,14 +25,13 @@ import _ "net/http/pprof"
 import (
 	"sre-agent/types"
 	"flag"
-	//        "fmt"
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"net/http"
 	"os"
@@ -40,7 +39,6 @@ import (
 	"path/filepath"
 	"syscall"
 	"time"
-	//        "strings"
 	"strconv"
 )
 
@@ -49,7 +47,7 @@ var PluginSlice []types.PluginRuntime
 var p = message.NewPrinter(language.English)
 
 func cleanup() {
-	log.Print("Program Cleanup Started")
+	log.Info("Program Cleanup Started")
 	for pluginIdx, PluginPtr := range PluginSlice {
 		logrecord := p.Sprintf("Stopping plugin %3d %20s ticker %#v\n", pluginIdx, PluginPtr.PluginName, PluginPtr.Ticker)
 		log.Print(logrecord)
@@ -66,7 +64,7 @@ func main() {
 	//--------------------------------------------------------------------------//
 	// good practice to initialize what we want
 	rand.Seed(time.Now().UTC().UnixNano())
-	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile | log.LUTC)
+
 
 	yamlPtr := flag.String("f", "./config/agent.yaml", "Agent configuration YAML file")
 	debugPtr := flag.Bool("d", false, "Agent debug mode - verbose")
@@ -75,8 +73,8 @@ func main() {
 
 	logrecord := p.Sprintf("%s [from %s] will read config from %s in debug %v and generate %d \n",
 		myName, myExecDir, *yamlPtr, *debugPtr, *numPtr)
-	log.Print("Program Started")
-	log.Print(logrecord)
+	log.Info("Program Started")
+	log.Info(logrecord)
 
 	//--------------------------------------------------------------------------//
 	// read the yaml configuration into the Config structure
@@ -89,8 +87,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
+	// See if LogFormat is needed
+	if config.LogFormat == "JSON"   { log.SetFormatter(&log.JSONFormatter{}) }
+	if config.LogDest   == "STDERR" { log.SetOutput(os.Stderr) }
+
 	logrecord = p.Sprintf("config: %#v\n", config)
-	log.Print(logrecord)
+	log.Info(logrecord)
 
 	//--------------------------------------------------------------------------//
 	// Complete the Context values with non-changing information (while we are 
@@ -105,16 +107,19 @@ func main() {
         myContext.RegionId       = "US-EAST"
         myContext.ZoneId         = "Reston"
         myContext.RunId          = uuid.New().String()
+
+	// Set the context in the logger as default
+	contextLogger := log.WithFields(log.Fields{"context": myContext})
         logrecord = p.Sprintf("Context: %#v\n", myContext)
-        log.Print(logrecord)
+        contextLogger.Info(logrecord)
 
 	//--------------------------------------------------------------------------//
 	// time to start a prometheus metrics server
 	// and export any metrics on the /metrics endpoint.
 	http.Handle(config.PrometheusHandle, promhttp.Handler())
 	go func() {
-		log.Printf("Beginning to serve on port %d at %s", config.PrometheusPort, config.PrometheusHandle)
-		log.Fatal(http.ListenAndServe(":"+strconv.Itoa(config.PrometheusPort), nil))
+		contextLogger.Printf("Beginning to serve on port %d at %s", config.PrometheusPort, config.PrometheusHandle)
+		contextLogger.Fatal(http.ListenAndServe(":"+strconv.Itoa(config.PrometheusPort), nil))
 	}()
 
 	//--------------------------------------------------------------------------//
@@ -127,14 +132,14 @@ func main() {
 
 	//--------------------------------------------------------------------------//
 	// now get ready to finish if some signals are received
-	log.Println("Setting signal handlers")
+	contextLogger.Println("Setting signal handlers")
 	csignal := make(chan os.Signal, 3)
 	signal.Notify(csignal, syscall.SIGINT)
 	signal.Notify(csignal, syscall.SIGTERM)
 	log.Println("Waiting for a signal to end")
 	s := <-csignal
-	log.Println("Got signal:", s)
+	contextLogger.Println("Got signal:", s)
 	cleanup()
-	log.Println("Program Ended")
+	contextLogger.Println("Program Ended")
 	os.Exit(4)
 }

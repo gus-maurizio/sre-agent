@@ -3,6 +3,7 @@ package main
 import (
 	"sre-agent/types"
 	"github.com/prometheus/client_golang/prometheus"
+        log "github.com/sirupsen/logrus"
 	"net"
 	"os"
 	"os/user"
@@ -35,7 +36,18 @@ var myContext types.Context
 
 
 func init() {
-	//Register metrics with prometheus
+        // Setup logging
+        //log.SetFormatter(&log.JSONFormatter{})
+        log.SetOutput(os.Stdout)
+        log.SetLevel(log.DebugLevel)
+        log.SetFormatter(&log.TextFormatter{
+                DisableColors: false,
+                FullTimestamp: true,
+                })
+        // This can be removed if CPU overhead is too high
+        log.SetReportCaller(true)
+
+	// Register metrics with prometheus
 	prometheus.MustRegister(fooMetric)
 	prometheus.MustRegister(messageMetric)
 	prometheus.MustRegister(bytesMetric)

@@ -33,6 +33,8 @@ type Config struct {
 	DefaultTick      int    `yaml:"defaulttimetick"`
 	PrometheusPort   int    `yaml:"prometheusport"`
 	PrometheusHandle string `yaml:"prometheushandle"`
+	LogFormat	 string `yaml:"logformat"`
+	LogDest  	 string `yaml:"logdest"`
 	ApplicationId    string `yaml:"applicationid"`
 	ModuleId         string `yaml:"moduleid"`
 	VersionId        string `yaml:"versionid"`

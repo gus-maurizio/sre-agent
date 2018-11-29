@@ -1,6 +1,8 @@
 a:			This is a test
 defaulttimeunit:	Milliseconds
 defaulttimetick:	10
+logformat:		JSON
+#logdest:		STDERR
 prometheusport:		9000
 prometheushandle:	/metrics
 # config of runtime
