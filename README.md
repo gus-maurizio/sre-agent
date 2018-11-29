@@ -47,3 +47,6 @@ docker run --rm -it -p 3000:3000 \
            -v ~/grafana-data:/var/lib/grafana \
             grafana/grafana
 ```
+Add the Prometheus data source and load the dashboard: https://grafana.com/dashboards/6671.
+Make sure you *DO NOT USE* localhost if you are running in Mac, use *docker.for.mac.host.internal* as the hostname (assuming you are running native the sre-agent). The Data Source for Prometheus must be defined the same way!.
+
