@@ -20,6 +20,8 @@
 
 package main
 
+import _ "net/http/pprof"
+
 import (
 	"sre-agent/types"
 	"flag"
