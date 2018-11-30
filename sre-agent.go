@@ -24,12 +24,15 @@ import _ "net/http/pprof"
 
 import (
 	"sre-agent/types"
+	"encoding/json"
 	"flag"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"gopkg.in/yaml.v2"
+	//"html"
 	"io/ioutil"
 	log "github.com/sirupsen/logrus"
 	"math/rand"
@@ -108,8 +111,23 @@ func main() {
 	// time to start a prometheus metrics server
 	// and export any metrics on the /metrics endpoint.
 	http.Handle(config.PrometheusHandle, promhttp.Handler())
+	// we now add a health function!
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		//fmt.Fprintf(w, "Hello, %q\n", html.EscapeString(r.URL.Path))
+		answer := struct {
+				Timestamp	float64
+				Netinfo		types.Nets
+				ContextData	types.Context
+			} { 	float64(time.Now().UnixNano())/1e9,
+				myNets,
+				myContext,
+			}
+		jsonAnswer, err := json.Marshal(answer)
+		if err != nil { contextLogger.Fatal("Cannot json marshal NET info. Err %s", err) }
+		fmt.Fprintf(w, "%s\n", jsonAnswer)
+	})
 	go func() {
-		contextLogger.WithFields(log.Fields{"prometheusport": config.PrometheusPort, "prometheuspath": config.PrometheusHandle}).Debug("Beginning metricsi")
+		contextLogger.WithFields(log.Fields{"prometheusport": config.PrometheusPort, "prometheuspath": config.PrometheusHandle}).Debug("Beginning metrics")
 		contextLogger.Fatal(http.ListenAndServe(":"+strconv.Itoa(config.PrometheusPort), nil))
 	}()
 
