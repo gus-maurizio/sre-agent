@@ -49,8 +49,7 @@ var p = message.NewPrinter(language.English)
 func cleanup() {
 	log.Info("Program Cleanup Started")
 	for pluginIdx, PluginPtr := range PluginSlice {
-		logrecord := p.Sprintf("Stopping plugin %3d %20s ticker %#v\n", pluginIdx, PluginPtr.PluginName, PluginPtr.Ticker)
-		log.Print(logrecord)
+		log.Debug(  p.Sprintf("Stopping plugin %3d %20s ticker %#v\n", pluginIdx, PluginPtr.PluginName, PluginPtr.Ticker) )
 		PluginPtr.Ticker.Stop()
 	}
 }
@@ -58,23 +57,16 @@ func cleanup() {
 func main() {
 	// get the program name and directory where it is loaded from
 	// also create a properly formatted (language aware) printer object
-	myName := filepath.Base(os.Args[0])
+	myName    := filepath.Base(os.Args[0])
 	myExecDir := filepath.Dir(os.Args[0])
 
 	//--------------------------------------------------------------------------//
-	// good practice to initialize what we want
+	// good practice to initialize what we want and read the command line options
 	rand.Seed(time.Now().UTC().UnixNano())
 
-
-	yamlPtr := flag.String("f", "./config/agent.yaml", "Agent configuration YAML file")
+	yamlPtr  := flag.String("f", "./config/agent.yaml", "Agent configuration YAML file")
 	debugPtr := flag.Bool("d", false, "Agent debug mode - verbose")
-	numPtr := flag.Int("n", 100, "number of records")
 	flag.Parse()
-
-	logrecord := p.Sprintf("%s [from %s] will read config from %s in debug %v and generate %d \n",
-		myName, myExecDir, *yamlPtr, *debugPtr, *numPtr)
-	log.Info("Program Started")
-	log.Info(logrecord)
 
 	//--------------------------------------------------------------------------//
 	// read the yaml configuration into the Config structure
@@ -88,15 +80,16 @@ func main() {
 		log.Fatalf("error: %v", err)
 	}
 	// See if LogFormat is needed
-	if config.LogFormat == "JSON"   { log.SetFormatter(&log.JSONFormatter{}) }
 	if config.LogDest   == "STDERR" { log.SetOutput(os.Stderr) }
+	if config.LogFormat == "JSON"   { log.SetFormatter(&log.JSONFormatter{ DisableTimestamp: config.DisableTimestamp, PrettyPrint: config.PrettyPrint}) }
+	if *debugPtr { log.SetLevel(log.DebugLevel) }
 
-	logrecord = p.Sprintf("config: %#v\n", config)
-	log.Info(logrecord)
+
+	log.Info( p.Sprintf("Program %s [from %s] Started", myName, myExecDir) )
+	log.Debug( p.Sprintf("config: %#v\n", config) )
 
 	//--------------------------------------------------------------------------//
-	// Complete the Context values with non-changing information (while we are 
-	// alive!)
+	// Complete the Context values with non-changing information (while we are alive!)
 
         myContext.AccountId      = "000000000000"
         myContext.ApplicationId  = config.ApplicationId
@@ -109,37 +102,35 @@ func main() {
         myContext.RunId          = uuid.New().String()
 
 	// Set the context in the logger as default
-	contextLogger := log.WithFields(log.Fields{"context": myContext})
-        logrecord = p.Sprintf("Context: %#v\n", myContext)
-        contextLogger.Info(logrecord)
-
+	contextLogger := log.WithFields(log.Fields{"name": myName, "context": myContext})
+        contextLogger.WithFields(log.Fields{"netinfo": myNets}).Info( "NET" )
 	//--------------------------------------------------------------------------//
 	// time to start a prometheus metrics server
 	// and export any metrics on the /metrics endpoint.
 	http.Handle(config.PrometheusHandle, promhttp.Handler())
 	go func() {
-		contextLogger.Printf("Beginning to serve on port %d at %s", config.PrometheusPort, config.PrometheusHandle)
+		contextLogger.WithFields(log.Fields{"prometheusport": config.PrometheusPort, "prometheuspath": config.PrometheusHandle}).Debug("Beginning metricsi")
 		contextLogger.Fatal(http.ListenAndServe(":"+strconv.Itoa(config.PrometheusPort), nil))
 	}()
 
 	//--------------------------------------------------------------------------//
 	// Start the base plugin
 	// set the timer
-	pluginMaker(myContext, 500*time.Millisecond, "baseChannelPlugin", basePlugin, baseMeasure)
+	pluginMaker(myContext, 5000*time.Millisecond, "baseChannelPlugin", basePlugin, baseMeasure)
 
 	// now a Mutex one...
-	pluginMaker(myContext, 1000*time.Millisecond, "baseMutexPlugin", basePlugin, baseMeasure)
+	pluginMaker(myContext, 9000*time.Millisecond, "baseMutexPlugin", basePlugin, baseMeasure)
 
 	//--------------------------------------------------------------------------//
 	// now get ready to finish if some signals are received
-	contextLogger.Println("Setting signal handlers")
+	contextLogger.Debug("Setting signal handlers")
 	csignal := make(chan os.Signal, 3)
 	signal.Notify(csignal, syscall.SIGINT)
 	signal.Notify(csignal, syscall.SIGTERM)
-	log.Println("Waiting for a signal to end")
+	contextLogger.Debug("Waiting for a signal to end")
 	s := <-csignal
-	contextLogger.Println("Got signal:", s)
+	contextLogger.Debug("Got signal:", s)
 	cleanup()
-	contextLogger.Println("Program Ended")
+	contextLogger.Info("Program Ended")
 	os.Exit(4)
 }

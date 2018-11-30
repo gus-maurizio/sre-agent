@@ -1,16 +1,21 @@
-a:			This is a test
-defaulttimeunit:	Milliseconds
-defaulttimetick:	10
+# config of runtime
+applicationid:          ASVMYNAME
+moduleid:               go.agent
+versionid:              1.0.0.a
+environmentid:          Production
+# log preferences
 logformat:		JSON
 #logdest:		STDERR
+prettyprint:		true
+disabletimestamp:	false
+# Prometheus metric expose
 prometheusport:		9000
 prometheushandle:	/metrics
-# config of runtime
-applicationid:		ASVMYNAME
-moduleid:		go.agent
-versionid:		1.0.0.a
-environmentid:		Production
 # plugin section
+# defaults for Plugins 
+defaulttimeunit:        Milliseconds
+defaulttimetick:        10
+# plugin configuration section
 plugins:
   - pluginname:		MyPlugin
     pluginmodule:	./plugin/MyPlugin.so

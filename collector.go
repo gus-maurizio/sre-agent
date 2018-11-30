@@ -2,6 +2,7 @@ package main
 
 import (
 	"sre-agent/types"
+	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
         log "github.com/sirupsen/logrus"
 	"net"
@@ -32,20 +33,21 @@ var bytesMetric = prometheus.NewCounterVec(
 )
 
 
-var myContext types.Context 
-
+var myContext    types.Context 
+var myModContext types.ModuleContext 
+var myNets       types.Nets
 
 func init() {
         // Setup logging
         //log.SetFormatter(&log.JSONFormatter{})
         log.SetOutput(os.Stdout)
-        log.SetLevel(log.DebugLevel)
+        log.SetLevel(log.InfoLevel)
         log.SetFormatter(&log.TextFormatter{
                 DisableColors: false,
                 FullTimestamp: true,
                 })
         // This can be removed if CPU overhead is too high
-        log.SetReportCaller(true)
+        //log.SetReportCaller(true)
 
 	// Register metrics with prometheus
 	prometheus.MustRegister(fooMetric)
@@ -61,21 +63,25 @@ func init() {
 	myContext.UserUID = osUser.Uid 
 	myContext.ExecuteId, _ = os.Hostname()
 	myContext.AccountId = "000000000000"
+
 	// need to get ALL ip addresses from all interfaces
-	ifaces, _ := net.Interfaces()
-	for _, i := range ifaces {
-		addrs, _ := i.Addrs()
-		// handle err
-		for _, addr := range addrs {
-			var ip net.IP
-			switch v := addr.(type) {
-			case *net.IPNet:
-				ip = v.IP
-			case *net.IPAddr:
-				ip = v.IP
-			}
-			// process IP address
-			myContext.IPaddress = append(myContext.IPaddress, ip.String())
-		}
-	}
+        ifaces, _ := net.Interfaces()
+        for _, i := range ifaces {
+                if i.Flags&net.FlagLoopback     != 0 { continue }
+                if i.Flags&net.FlagPointToPoint != 0 { continue }
+                addrs, _ := i.Addrs()
+                if len(addrs) == 0 { continue }
+		myNet := &types.NetInfo{Net: i.Name, MTU: i.MTU, MAC: fmt.Sprintf("%v",i.HardwareAddr)}
+                for  _, addr := range addrs {
+                        var ip net.IP
+                        switch v := addr.(type) {
+                        case *net.IPNet:
+                                ip = v.IP
+                        case *net.IPAddr:
+                                ip = v.IP
+                        }
+			myNet.IP = append(myNet.IP, ip.String())
+                }
+		myNets.Items = append(myNets.Items,*myNet)
+        }
 }

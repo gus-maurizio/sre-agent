@@ -29,30 +29,24 @@ func baseMeasure() string {
 }
 
 func pluginMaker(context types.Context, duration time.Duration, pName string, plugin types.FPlugin, measure types.FuncMeasure) {
-	//logrecord := p.Sprintf("PluginMaker context [%#v] with duration %v name: %s and function %#v with function_measure %#v\n", context, duration, pName, plugin, measure)
-	//log.Info(logrecord)
 	pRuntime := types.PluginRuntime{Ticker: time.NewTicker(duration), PluginName: pName}
-	pContext := context
 	PluginSlice = append(PluginSlice, pRuntime)
-	go plugin(pContext, pRuntime.PluginName, pRuntime.Ticker, measure)
+	go plugin(context, pRuntime.PluginName, pRuntime.Ticker, measure)
 }
 
-func basePlugin(myParentContext types.Context, myName string, ticker *time.Ticker, measure types.FuncMeasure) {
-	// make sure we Stop at end
-	myContext := myParentContext
-        myContext.TraceId  = uuid.New().String()
-        // Set the context in the logger as default
-        pluginLogger := log.WithFields(log.Fields{"context": myContext})
-        pluginLogger.Info("invokedi")
+func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, measure types.FuncMeasure) {
+	traceid := uuid.New().String()
+        pluginLogger := log.WithFields(log.Fields{"pluginname": myName, "context": myContext})
+        pluginLogger.WithFields(log.Fields{"timestamp": float64(time.Now().UnixNano()) / 1e9}).Debug("started")
 	defer ticker.Stop()
 	for t := range ticker.C {
-		myContext.Timestamp = float64(t.UTC().UnixNano())/1e9
-        	myContext.RequestId = uuid.New().String()
-		myContext.ParentId  = ""
 		myMeasure := measure()
-		pluginLogger.Printf("%20s Tick at %f measure: [%#v] context: [%#v]\n", myName, float64(t.UTC().UnixNano())/1e9, myMeasure, myContext)
+        	myModuleContext := &types.ModuleContext{RequestId: uuid.New().String(), TraceId: traceid}
+		pluginLogger.WithFields(log.Fields{"mycontext": myModuleContext, "timestamp": float64(t.UnixNano()) / 1e9, "measure": myMeasure}).Info("tick")
+
 		messageMetric.With(prometheus.Labels{"plugin":myName}).Inc()
 		bytesMetric.With(prometheus.Labels{"plugin":myName}).Add(float64(len(myMeasure)))
 	}
+        pluginLogger.WithFields(log.Fields{"timestamp": float64(time.Now().UnixNano()) / 1e9}).Info("ended")
 }
 
