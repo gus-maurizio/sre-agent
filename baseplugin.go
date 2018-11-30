@@ -2,6 +2,8 @@ package main
 
 import (
 	"sre-agent/types"
+	"encoding/json"
+	"fmt"
         "github.com/google/uuid"
         "github.com/prometheus/client_golang/prometheus"
         //      "log"
@@ -10,7 +12,7 @@ import (
 	"time"
 )
 
-func baseMeasure() string {
+func baseMeasure() []byte {
 	caller := "not available"
 	whoami := "not available"
 
@@ -20,12 +22,12 @@ func baseMeasure() string {
 		caller = details.Name()
 	}
 
-	me, _, _, ok := runtime.Caller(0)
+	me, _, _, mok := runtime.Caller(0)
 	mydetails := runtime.FuncForPC(me)
-	if ok && mydetails != nil {
+	if mok && mydetails != nil {
 		whoami = mydetails.Name()
 	}
-	return (p.Sprintf("sample %20s called by %20s at %f", whoami, caller, float64(time.Now().UnixNano())/1e9))
+	return([]byte(fmt.Sprintf(`[{"mcaller": "%s", "mwho": "%s", "mtime": %f}]`, caller, whoami, float64(time.Now().UnixNano())/1e9)))
 }
 
 func pluginMaker(context types.Context, duration time.Duration, pName string, plugin types.FPlugin, measure types.FuncMeasure) {
@@ -40,12 +42,15 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
         pluginLogger.WithFields(log.Fields{"timestamp": float64(time.Now().UnixNano()) / 1e9}).Debug("started")
 	defer ticker.Stop()
 	for t := range ticker.C {
-		myMeasure := measure()
+		var myMeasure interface{}
+		measuredata := measure()
+		err := json.Unmarshal(measuredata, &myMeasure)
+		if err != nil { log.Fatal("unmarshall err %+v",err) }
         	myModuleContext := &types.ModuleContext{RequestId: uuid.New().String(), TraceId: traceid}
 		pluginLogger.WithFields(log.Fields{"mycontext": myModuleContext, "timestamp": float64(t.UnixNano()) / 1e9, "measure": myMeasure}).Info("tick")
 
 		messageMetric.With(prometheus.Labels{"plugin":myName}).Inc()
-		bytesMetric.With(prometheus.Labels{"plugin":myName}).Add(float64(len(myMeasure)))
+		bytesMetric.With(prometheus.Labels{"plugin":myName}).Add(float64(len(measuredata)))
 	}
         pluginLogger.WithFields(log.Fields{"timestamp": float64(time.Now().UnixNano()) / 1e9}).Info("ended")
 }

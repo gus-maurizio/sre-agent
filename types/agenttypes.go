@@ -18,6 +18,10 @@ type Nets    struct {
 
 // Context is designed to store relevant information for observability and
 // tracing that will be needed to identify what is going on.
+// It basically identify the host this agent will be running on. The RunId
+// is a unique identifier generated once and passed to all plugins to be 
+// able to report and correlate to the Context. Each plugin at each tick
+// should update the ModuleContext RequestId. 
 
 type Context struct {
 	UserId        string   `json:"userid"`
@@ -34,10 +38,30 @@ type Context struct {
         RunId         string   `json:"runid"`
 }
 
+// Each Plugin will keep the RunId from the agent.
+// Once the plugin is created and activated, it will
+// create a unique TraceId to identify his data.
+// The plugin will loop and each 'tick' will use
+// a new RequestId that can be passed down to the measurement
+// functions. 
+
 type ModuleContext struct {
+        RunId         string   `json:"runid"`
         TraceId       string   `json:"traceid"`
         RequestId     string   `json:"requestid"`
         ParentId      string   `json:"parentid"`
+}
+
+// The information needs to be packed in a simple way.
+// The ModuleData type provides the base elements.
+// Each plugin will provide a Measure() method that
+// will return a json structure. 
+
+type ModuleData struct {
+	RunId		string   	`json:"runid"`
+	Timestamp	float64  	`json:"timestamp"`
+	ModContext	ModuleContext	`json:"modulecontext"`
+	Measure		interface{}	`json:"measure"`
 }
 
 // This is what gets loaded from the -f .yaml configuration file
@@ -71,7 +95,7 @@ type PluginRuntime struct {
 	PluginName string
 }
 
-type FuncMeasure func() string
+type FuncMeasure func() []byte
 
 type FuncPlugin func(Context, string, *time.Ticker, FuncMeasure)
 
