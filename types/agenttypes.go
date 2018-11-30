@@ -46,6 +46,7 @@ type Context struct {
 // functions. 
 
 type ModuleContext struct {
+        ModuleName    string   `json:"modulename"`
         RunId         string   `json:"runid"`
         TraceId       string   `json:"traceid"`
         RequestId     string   `json:"requestid"`

@@ -46,7 +46,7 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 		measuredata := measure()
 		err := json.Unmarshal(measuredata, &myMeasure)
 		if err != nil { log.Fatal("unmarshall err %+v",err) }
-        	myModuleContext := &types.ModuleContext{RequestId: uuid.New().String(), TraceId: traceid}
+        	myModuleContext := &types.ModuleContext{ModuleName: myName, RequestId: uuid.New().String(), TraceId: traceid, RunId: myContext.RunId}
 		pluginLogger.WithFields(log.Fields{"mycontext": myModuleContext, "timestamp": float64(t.UnixNano()) / 1e9, "measure": myMeasure}).Info("tick")
 
 		messageMetric.With(prometheus.Labels{"plugin":myName}).Inc()
