@@ -11,10 +11,14 @@ import (
 )
 
 //Define the metrics we wish to expose
-var fooMetric = prometheus.NewGauge(prometheus.GaugeOpts{
-	Name: "agent_foometric",
-	Help: "Shows whether a foo has occurred in our cluster",
-})
+
+var overheadMetric = prometheus.NewGaugeVec(
+        prometheus.GaugeOpts{
+                Name: "agent_plugin_overhead",
+		Help: "Plugin measure overhead in microseconds",
+        },
+        []string{"plugin"},
+)
 
 var messageMetric = prometheus.NewCounterVec(
 	prometheus.CounterOpts{
@@ -50,12 +54,10 @@ func init() {
         //log.SetReportCaller(true)
 
 	// Register metrics with prometheus
-	prometheus.MustRegister(fooMetric)
+	prometheus.MustRegister(overheadMetric)
 	prometheus.MustRegister(messageMetric)
 	prometheus.MustRegister(bytesMetric)
 
-	//Set fooMetric to 1
-	fooMetric.Set(0)
 
 	//Get all the components needed to populate Context.
 	osUser, _ := user.Current()

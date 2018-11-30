@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func baseMeasure() []byte {
+func baseMeasure() ([]byte, float64) {
 	caller := "not available"
 	whoami := "not available"
 
@@ -27,7 +27,8 @@ func baseMeasure() []byte {
 	if mok && mydetails != nil {
 		whoami = mydetails.Name()
 	}
-	return([]byte(fmt.Sprintf(`[{"mcaller": "%s", "mwho": "%s", "mtime": %f}]`, caller, whoami, float64(time.Now().UnixNano())/1e9)))
+	timenow := float64(time.Now().UnixNano())/1e9
+	return []byte(fmt.Sprintf(`[{"mcaller": "%s", "mwho": "%s", "measuretime": %f}]`, caller, whoami, timenow)), timenow
 }
 
 func pluginMaker(context types.Context, duration time.Duration, pName string, plugin types.FPlugin, measure types.FuncMeasure) {
@@ -43,12 +44,22 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 	defer ticker.Stop()
 	for t := range ticker.C {
 		var myMeasure interface{}
-		measuredata := measure()
+		measuredata, mymeasuretime := measure()
 		err := json.Unmarshal(measuredata, &myMeasure)
 		if err != nil { log.Fatal("unmarshall err %+v",err) }
         	myModuleContext := &types.ModuleContext{ModuleName: myName, RequestId: uuid.New().String(), TraceId: traceid, RunId: myContext.RunId}
-		pluginLogger.WithFields(log.Fields{"mycontext": myModuleContext, "timestamp": float64(t.UnixNano()) / 1e9, "measure": myMeasure}).Info("tick")
-
+		// build the ModuleData answer
+		myModuleData    := &types.ModuleData{
+			RunId: myContext.RunId, 
+			Timestamp: float64(t.UnixNano()) / 1e9,
+		 	ModContext: *myModuleContext, 
+			Measure: myMeasure,
+			TimeOverhead: (mymeasuretime - float64(t.UnixNano()) / 1e9) * 1e6,
+		} 
+		// Good idea to log
+		pluginLogger.WithFields(log.Fields{"myModuleData": myModuleData}).Info("tick")
+		// Update metrics related to the plugin
+		overheadMetric.With(prometheus.Labels{"plugin":myName}).Set(myModuleData.TimeOverhead)
 		messageMetric.With(prometheus.Labels{"plugin":myName}).Inc()
 		bytesMetric.With(prometheus.Labels{"plugin":myName}).Add(float64(len(measuredata)))
 	}

@@ -63,6 +63,7 @@ type ModuleData struct {
 	Timestamp	float64  	`json:"timestamp"`
 	ModContext	ModuleContext	`json:"modulecontext"`
 	Measure		interface{}	`json:"measure"`
+	TimeOverhead	float64		`json:"overhead"`
 }
 
 // This is what gets loaded from the -f .yaml configuration file
@@ -96,7 +97,7 @@ type PluginRuntime struct {
 	PluginName string
 }
 
-type FuncMeasure func() []byte
+type FuncMeasure func() ([]byte, float64)
 
 type FuncPlugin func(Context, string, *time.Ticker, FuncMeasure)
 
