@@ -6,7 +6,7 @@ environmentid:          Production
 # log preferences
 logformat:		JSON
 #logdest:		STDERR
-prettyprint:		true
+prettyprint:		false
 disabletimestamp:	false
 # Prometheus metric expose
 prometheusport:		9000
@@ -15,17 +15,13 @@ healthhandle:		/health
 detailhandle:		/detail/
 # plugin section
 # defaults for Plugins 
-defaulttimeunit:        Milliseconds
+defaulttimeunit:        Second
 defaulttimetick:        10
 # plugin configuration section
 plugins:
-  - pluginname:		MyPlugin
-    pluginmodule:	./plugin/MyPlugin.so
-    plugintimeunit:	Seconds
-    plugintimetick:	1
+  - pluginname:		plugin_system
+    pluginmodule:	./plugins/plugin_system.so
+    #plugintimeunit:	Millisecond
+    #plugintimetick:	500
 #
-  - pluginname:		MyCPUPlugin
-    pluginmodule:	./plugin/MyPlugin.so
-    plugintimeunit:	Milliseconds
-    plugintimetick:	50
 #

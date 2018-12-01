@@ -21,28 +21,38 @@
 package main
 
 import (
-//        "golang.org/x/text/language"
-//        "golang.org/x/text/message"
-//        "gopkg.in/yaml.v2"
-//        "io/ioutil"
-        "log"
-//        "math/rand"
-//        "path/filepath"
-//        "time"
-//        "types/stack"
-//        "strings"
+	//"sre-agent/types"
+	//"encoding/json"
+	"fmt"
+	//"github.com/google/uuid"
+	//"github.com/prometheus/client_golang/prometheus"
+	//      "log"
+	"runtime"
+	"time"
 )
 
-type greeting string
 
-func (g greeting) Greet() {
-    log.Println("Hello Universe")
+func PluginMeasure() ([]byte, float64) {
+        caller := "not available"
+        whoami := "not available"
+
+        pc, _, _, ok := runtime.Caller(1)
+        details := runtime.FuncForPC(pc)
+        if ok && details != nil {
+                caller = details.Name()
+        }
+
+        me, _, _, mok := runtime.Caller(0)
+        mydetails := runtime.FuncForPC(me)
+        if mok && mydetails != nil {
+                whoami = mydetails.Name()
+        }
+        timenow := float64(time.Now().UnixNano())/1e9
+        return []byte(fmt.Sprintf(`[{"mcaller": "%s", "mwho": "%s", "measuretime": %f}]`, caller, whoami, timenow)), timenow
 }
 
-// exported as symbol named "Greeter"
-var Greeter greeting
 
 func main() {
-	var mygreet greeting = "Hiya"
-	mygreet.Greet()
+	arraybyte, timenow := PluginMeasure()
+	fmt.Printf("%#v\n%#v\n", timenow, arraybyte)
 }

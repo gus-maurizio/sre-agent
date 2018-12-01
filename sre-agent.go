@@ -40,6 +40,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"plugin"
 	"syscall"
 	"time"
 	"strconv"
@@ -89,7 +90,7 @@ func main() {
 
 
 	log.Info( p.Sprintf("Program %s [from %s] Started", myName, myExecDir) )
-	log.Debug( p.Sprintf("config: %#v\n", config) )
+	log.Debug( p.Sprintf("config: %+v\n", config) )
 
 	//--------------------------------------------------------------------------//
 	// Complete the Context values with non-changing information (while we are alive!)
@@ -159,10 +160,35 @@ func main() {
 	//--------------------------------------------------------------------------//
 	// Start the base plugin
 	// set the timer
-	pluginMaker(myContext, 200*time.Millisecond, "baseChannelPlugin", basePlugin, baseMeasure)
+	//pluginMaker(myContext, 200*time.Millisecond, "baseChannelPlugin", basePlugin, baseMeasure)
 
-	// now a Mutex one...
-	//pluginMaker(myContext, 9000*time.Millisecond, "baseMutexPlugin", basePlugin, baseMeasure)
+	// Scan the configuration to load all the plugins
+	for i := range config.Plugins {
+		contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Debug("plugin")
+		// load the plugin
+		plug, lerr := plugin.Open(config.Plugins[i].PluginModule)
+		if lerr != nil {
+			contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": lerr}).Fatal("Error loading plugin")
+			os.Exit(16)
+		}
+		pluginMeasure, perr := plug.Lookup("PluginMeasure")
+                if perr != nil {
+                        contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": perr}).Fatal("Error loading measure function")
+			continue
+                }
+		var plugintick time.Duration
+		if config.Plugins[i].PluginUnit == "" { config.Plugins[i].PluginUnit = config.DefaultUnit }
+		switch config.Plugins[i].PluginUnit {
+		case "Second":
+			plugintick = time.Second  
+		case "Millisecond":
+			plugintick = time.Millisecond  
+		default:
+			plugintick = time.Minute  
+		}
+		if config.Plugins[i].PluginTick == 0 {config.Plugins[i].PluginTick = config.DefaultTick}
+		pluginMaker(myContext, time.Duration(config.Plugins[i].PluginTick) * plugintick, config.Plugins[i].PluginName, basePlugin, pluginMeasure.(func() ([]uint8, float64)))
+	}
 
 	//--------------------------------------------------------------------------//
 	// now get ready to finish if some signals are received

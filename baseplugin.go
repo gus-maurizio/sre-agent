@@ -31,7 +31,8 @@ func baseMeasure() ([]byte, float64) {
 	return []byte(fmt.Sprintf(`[{"mcaller": "%s", "mwho": "%s", "measuretime": %f}]`, caller, whoami, timenow)), timenow
 }
 
-func pluginMaker(context types.Context, duration time.Duration, pName string, plugin types.FPlugin, measure types.FuncMeasure) {
+func pluginMaker(context types.Context, duration time.Duration, pName string, plugin types.FPlugin, measure  func() ([]uint8, float64)) {
+        log.WithFields(log.Fields{"duration": duration, "name": pName}).Debug("pluginMaker")
 	pRuntime := types.PluginRuntime{Ticker: time.NewTicker(duration), PluginName: pName}
 	PluginSlice = append(PluginSlice, pRuntime)
 	go plugin(context, pRuntime.PluginName, pRuntime.Ticker, measure)
