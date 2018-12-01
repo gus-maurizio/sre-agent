@@ -46,10 +46,11 @@ var bytesMetric = prometheus.NewCounterVec(
 )
 
 
-var myContext     types.Context 
-var myModContext  types.ModuleContext 
-var myStaticInfo  []interface{}
-var myDynamicInfo map[string]interface{}
+var myContext            types.Context 
+var myModContext         types.ModuleContext 
+var myStaticInfo         []interface{}
+var myDynamicInfo        map[string]interface{}
+var myDynamicDetailInfo  map[string]interface{}
 
 func init() {
         // Setup logging
@@ -94,22 +95,33 @@ func getInfo() {
 
 	myDynamicInfo["mem"]           , _ = mem.VirtualMemory()
 	myDynamicInfo["cputimes"]      , _ = cpu.Times(false)
-	myDynamicInfo["cputimes_i"]    , _ = cpu.Times(true)
 	myDynamicInfo["cpupercent"]    , _ = cpu.Percent(10 * time.Millisecond, false)
-	myDynamicInfo["cpupercent_i"]  , _ = cpu.Percent(10 * time.Millisecond, true)
-	myDynamicInfo["users"]         , _ = host.Users()
 	myDynamicInfo["netcounters"]   , _ = net.IOCounters(false)
-	myDynamicInfo["netcounters_i"] , _ = net.IOCounters(true)
-	myDynamicInfo["netconnections"], _ = net.Connections("all")
-
-	f, _ := disk.Partitions(true)
-	for _, part := range f { myDynamicInfo[part.Device], _ = disk.Usage(part.Mountpoint) }
-	p, _ := process.Processes()
-	for _, proc := range p {
-		q, _ := proc.Connections()
-		if len(q) == 0 {continue}
-		myDynamicInfo["proc_" + strconv.Itoa(int(proc.Pid))] = proc
-		myDynamicInfo["proc_" + strconv.Itoa(int(proc.Pid)) + "_connections"] = q
-	}
 
 }
+
+func getDetailInfo() {
+        // Get all the static information about this instance
+
+        if myDynamicDetailInfo == nil {
+                myDynamicDetailInfo = make(map[string]interface{},20)
+        }
+
+        myDynamicDetailInfo["cputimes_i"]    , _ = cpu.Times(true)
+        myDynamicDetailInfo["cpupercent_i"]  , _ = cpu.Percent(10 * time.Millisecond, true)
+        myDynamicDetailInfo["users"]         , _ = host.Users()
+        myDynamicDetailInfo["netcounters_i"] , _ = net.IOCounters(true)
+        myDynamicDetailInfo["netconnections"], _ = net.Connections("all")
+
+        f, _ := disk.Partitions(true)
+        for _, part := range f { myDynamicDetailInfo[part.Device], _ = disk.Usage(part.Mountpoint) }
+        p, _ := process.Processes()
+        for _, proc := range p {
+                q, _ := proc.Connections()
+                if len(q) == 0 {continue}
+                myDynamicDetailInfo["proc_" + strconv.Itoa(int(proc.Pid))] = proc
+                myDynamicDetailInfo["proc_" + strconv.Itoa(int(proc.Pid)) + "_connections"] = q
+        }
+
+}
+

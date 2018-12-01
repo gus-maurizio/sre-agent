@@ -130,12 +130,24 @@ func main() {
         // we now add a details function!
         http.HandleFunc(config.DetailHandle, func(w http.ResponseWriter, r *http.Request) {
                 //fmt.Fprintf(w, "Hello, %q\n", html.EscapeString(r.URL.Path))
-		getInfo()
-		myDynamicInfo["timestamp"] = float64(time.Now().UnixNano())/1e9
-		myDynamicInfo["context"]   = myContext
-                infoAnswer, ierr := json.MarshalIndent(myDynamicInfo, "", "\t")
-                if ierr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", ierr) }
-                fmt.Fprintf(w, "%s\n", infoAnswer)
+		switch r.URL.Path {
+		case config.DetailHandle + "all":
+			getDetailInfo()
+			myDynamicDetailInfo["timestamp"] = float64(time.Now().UnixNano())/1e9
+			myDynamicDetailInfo["context"]   = myContext
+			infoAnswer, ierr := json.MarshalIndent(myDynamicDetailInfo, "", "\t") 
+			if ierr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", ierr) }
+			fmt.Fprintf(w, "%s\n", infoAnswer)
+                case config.DetailHandle + "summary":
+                        getInfo()
+                        myDynamicInfo["timestamp"] = float64(time.Now().UnixNano())/1e9
+                        myDynamicInfo["context"]   = myContext
+                        infoAnswer, ierr := json.MarshalIndent(myDynamicInfo, "", "\t")
+                        if ierr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", ierr) }
+                        fmt.Fprintf(w, "%s\n", infoAnswer)
+		default:	
+                        fmt.Fprintf(w, "%s\n", "must specify /all or /summary")
+		}
         })
 
 	// Launch the Prometheus server that will answer to the /metrics requests

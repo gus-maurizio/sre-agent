@@ -12,7 +12,7 @@ disabletimestamp:	false
 prometheusport:		9000
 metrichandle:		/metrics
 healthhandle:		/health
-detailhandle:		/detail
+detailhandle:		/detail/
 # plugin section
 # defaults for Plugins 
 defaulttimeunit:        Milliseconds
