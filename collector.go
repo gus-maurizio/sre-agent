@@ -10,11 +10,12 @@ import (
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/net"
-	//"github.com/shirou/gopsutil/process"
+	"github.com/shirou/gopsutil/process"
 
 	log "github.com/sirupsen/logrus"
 	"os"
 	"os/user"
+	"strconv"
 	"time"
 )
 
@@ -96,5 +97,19 @@ func getInfo() {
 	myDynamicInfo["cputimes_i"]    , _ = cpu.Times(true)
 	myDynamicInfo["cpupercent"]    , _ = cpu.Percent(10 * time.Millisecond, false)
 	myDynamicInfo["cpupercent_i"]  , _ = cpu.Percent(10 * time.Millisecond, true)
+	myDynamicInfo["users"]         , _ = host.Users()
+	myDynamicInfo["netcounters"]   , _ = net.IOCounters(false)
+	myDynamicInfo["netcounters_i"] , _ = net.IOCounters(true)
+	myDynamicInfo["netconnections"], _ = net.Connections("all")
+
+	f, _ := disk.Partitions(true)
+	for _, part := range f { myDynamicInfo[part.Device], _ = disk.Usage(part.Mountpoint) }
+	p, _ := process.Processes()
+	for _, proc := range p {
+		q, _ := proc.Connections()
+		if len(q) == 0 {continue}
+		myDynamicInfo["proc_" + strconv.Itoa(int(proc.Pid))] = proc
+		myDynamicInfo["proc_" + strconv.Itoa(int(proc.Pid)) + "_connections"] = q
+	}
 
 }
