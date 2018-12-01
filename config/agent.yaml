@@ -25,4 +25,10 @@ plugins:
     #plugintimetick:	500
     pluginconfig:	'{ "alert_blue":	"5%", "alert_green": "70%" }'
 #
+  - pluginname:         plugin_network
+    pluginmodule:       ./plugins/plugin_network.so
+    #plugintimeunit:    Millisecond
+    #plugintimetick:    300
+    pluginconfig:       '{ "alert_blue":        "15%", "alert_green": "60%" }'
+#
 #
