@@ -21,11 +21,10 @@
 package main
 
 import (
-	//"encoding/json"
+	"encoding/json"
 	"fmt"
-	//"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 	//"github.com/prometheus/client_golang/prometheus"
-	//      "log"
 	"time"
 )
 
@@ -35,6 +34,14 @@ func PluginMeasure() ([]byte, float64) {
         return []byte(fmt.Sprintf(`[{"measuretime": %f}]`, timenow)), timenow
 }
 
+func InitPlugin(config string) () {
+	var myconfig interface{}
+	err := json.Unmarshal([]byte(config), &myconfig)
+	if err != nil {
+		log.WithFields(log.Fields{"config": config}).Error("failed to unmarshal config")
+	}
+	log.WithFields(log.Fields{"jsonconfig": myconfig}).Info("InitPlugin")
+}
 
 func main() {
 	// for testing purposes only, can safely not exist!

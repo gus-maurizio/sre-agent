@@ -171,11 +171,20 @@ func main() {
 			contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": lerr}).Fatal("Error loading plugin")
 			os.Exit(16)
 		}
+		// Identify the main needed function exported as symbol PluginMeasure
 		pluginMeasure, perr := plug.Lookup("PluginMeasure")
                 if perr != nil {
                         contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": perr}).Fatal("Error loading measure function")
 			continue
                 }
+		// It is possible that the plugin needs a ONE TIME initialization via function exported as symbol InitPlugin
+		// and then pass the config parameter pluginconfig, a string that usually is a json element
+                pluginInit, ierr := plug.Lookup("InitPlugin")
+                if ierr == nil {
+                        contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to initialize plugin")
+			pluginInit.(func(string) ())(config.Plugins[i].PluginConfig)
+                }
+		// Compute the TICK between measurements by identifying the unit (Millisecond or Second, if not use Minute)
 		var plugintick time.Duration
 		if config.Plugins[i].PluginUnit == "" { config.Plugins[i].PluginUnit = config.DefaultUnit }
 		switch config.Plugins[i].PluginUnit {
@@ -187,6 +196,8 @@ func main() {
 			plugintick = time.Minute  
 		}
 		if config.Plugins[i].PluginTick == 0 {config.Plugins[i].PluginTick = config.DefaultTick}
+		// Now we have all the elements to call the pluginMaker and pass the parameters
+                contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to create the plugin")
 		pluginMaker(myContext, time.Duration(config.Plugins[i].PluginTick) * plugintick, config.Plugins[i].PluginName, basePlugin, pluginMeasure.(func() ([]uint8, float64)))
 	}
 

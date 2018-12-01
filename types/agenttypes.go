@@ -80,6 +80,7 @@ type Config struct {
 		PluginModule string `yaml:"pluginmodule"`
 		PluginUnit   string `yaml:"plugintimeunit"`
 		PluginTick   int    `yaml:"plugintimetick"`
+		PluginConfig string `yaml:"pluginconfig"`
 	}
 }
 

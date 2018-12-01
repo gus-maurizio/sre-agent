@@ -23,5 +23,6 @@ plugins:
     pluginmodule:	./plugins/plugin_system.so
     #plugintimeunit:	Millisecond
     #plugintimetick:	500
+    pluginconfig:	'{ "alert_blue":	"5%", "alert_green": "70%" }'
 #
 #
