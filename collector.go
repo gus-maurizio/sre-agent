@@ -95,7 +95,7 @@ func getInfo() {
 
 	myDynamicInfo["mem"]           , _ = mem.VirtualMemory()
 	myDynamicInfo["cputimes"]      , _ = cpu.Times(false)
-	myDynamicInfo["cpupercent"]    , _ = cpu.Percent(10 * time.Millisecond, false)
+	myDynamicInfo["cpupercent"]    , _ = cpu.Percent(200 * time.Millisecond, false)
 	myDynamicInfo["netcounters"]   , _ = net.IOCounters(false)
 
 }
@@ -108,7 +108,7 @@ func getDetailInfo() {
         }
 
         myDynamicDetailInfo["cputimes_i"]    , _ = cpu.Times(true)
-        myDynamicDetailInfo["cpupercent_i"]  , _ = cpu.Percent(10 * time.Millisecond, true)
+        myDynamicDetailInfo["cpupercent_i"]  , _ = cpu.Percent(200 * time.Millisecond, true)
         myDynamicDetailInfo["users"]         , _ = host.Users()
         myDynamicDetailInfo["netcounters_i"] , _ = net.IOCounters(true)
         myDynamicDetailInfo["netconnections"], _ = net.Connections("all")

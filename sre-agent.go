@@ -159,10 +159,10 @@ func main() {
 	//--------------------------------------------------------------------------//
 	// Start the base plugin
 	// set the timer
-	pluginMaker(myContext, 5000*time.Millisecond, "baseChannelPlugin", basePlugin, baseMeasure)
+	pluginMaker(myContext, 200*time.Millisecond, "baseChannelPlugin", basePlugin, baseMeasure)
 
 	// now a Mutex one...
-	pluginMaker(myContext, 9000*time.Millisecond, "baseMutexPlugin", basePlugin, baseMeasure)
+	//pluginMaker(myContext, 9000*time.Millisecond, "baseMutexPlugin", basePlugin, baseMeasure)
 
 	//--------------------------------------------------------------------------//
 	// now get ready to finish if some signals are received
