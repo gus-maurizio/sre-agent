@@ -6,7 +6,7 @@ environmentid:          Production
 # log preferences
 logformat:		JSON
 #logdest:		STDERR
-prettyprint:		false
+prettyprint:		true
 disabletimestamp:	false
 # Prometheus metric expose
 prometheusport:		9000
@@ -21,14 +21,14 @@ defaulttimetick:        10
 plugins:
   - pluginname:		plugin_system
     pluginmodule:	./plugins/plugin_system.so
-    #plugintimeunit:	Millisecond
-    #plugintimetick:	500
+    plugintimeunit:	Millisecond
+    plugintimetick:	500
     pluginconfig:	'{ "alert_blue":	"5%", "alert_green": "70%" }'
 #
   - pluginname:         plugin_network
     pluginmodule:       ./plugins/plugin_network.so
-    #plugintimeunit:    Millisecond
-    #plugintimetick:    300
+    plugintimeunit:     Millisecond
+    plugintimetick:     300
     pluginconfig:       '{ "alert_blue":        "15%", "alert_green": "60%" }'
 #
 #
