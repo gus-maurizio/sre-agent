@@ -106,30 +106,41 @@ func main() {
 
 	// Set the context in the logger as default
 	contextLogger := log.WithFields(log.Fields{"name": myName, "context": myContext})
-        contextLogger.WithFields(log.Fields{"netinfo": myNets}).Info( "NET" )
+        contextLogger.WithFields(log.Fields{"staticinfo": myStaticInfo}).Info( "STATIC" )
 	//--------------------------------------------------------------------------//
 	// time to start a prometheus metrics server
 	// and export any metrics on the /metrics endpoint.
-	http.Handle(config.PrometheusHandle, promhttp.Handler())
+	http.Handle(config.MetricHandle, promhttp.Handler())
 	// we now add a health function!
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc(config.HealthHandle, func(w http.ResponseWriter, r *http.Request) {
 		//fmt.Fprintf(w, "Hello, %q\n", html.EscapeString(r.URL.Path))
 		answer := struct {
 				Timestamp	float64
-				Netinfo		types.Nets
 				ContextData	types.Context
+				Staticinfo	[]interface{}
 			} { 	float64(time.Now().UnixNano())/1e9,
-				myNets,
 				myContext,
+				myStaticInfo,
 			}
-		jsonAnswer, err := json.Marshal(answer)
-		if err != nil { contextLogger.Fatal("Cannot json marshal NET info. Err %s", err) }
+		jsonAnswer, err := json.MarshalIndent(answer, "", "\t")
+		if err != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", err) }
 		fmt.Fprintf(w, "%s\n", jsonAnswer)
 	})
 
+        // we now add a details function!
+        http.HandleFunc(config.DetailHandle, func(w http.ResponseWriter, r *http.Request) {
+                //fmt.Fprintf(w, "Hello, %q\n", html.EscapeString(r.URL.Path))
+		getInfo()
+		myDynamicInfo["timestamp"] = float64(time.Now().UnixNano())/1e9
+		myDynamicInfo["context"]   = myContext
+                infoAnswer, ierr := json.MarshalIndent(myDynamicInfo, "", "\t")
+                if ierr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", ierr) }
+                fmt.Fprintf(w, "%s\n", infoAnswer)
+        })
+
 	// Launch the Prometheus server that will answer to the /metrics requests
 	go func() {
-		contextLogger.WithFields(log.Fields{"prometheusport": config.PrometheusPort, "prometheuspath": config.PrometheusHandle}).Debug("Beginning metrics")
+		contextLogger.WithFields(log.Fields{"prometheusport": config.PrometheusPort, "prometheuspath": config.MetricHandle}).Debug("Beginning metrics")
 		contextLogger.Fatal(http.ListenAndServe(":"+strconv.Itoa(config.PrometheusPort), nil))
 	}()
 

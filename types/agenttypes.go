@@ -5,17 +5,6 @@ import (
 )
 
 
-type NetInfo struct {
-	Net   string   `json:"net"`
-	MTU   int      `json:"mtu"`
-	MAC   string   `json:"mac"`
-	IP    []string `json:"ip"`
-}
-
-type Nets    struct {
-	Items []NetInfo `json:"netifs"`
-}
-
 // Context is designed to store relevant information for observability and
 // tracing that will be needed to identify what is going on.
 // It basically identify the host this agent will be running on. The RunId
@@ -79,7 +68,9 @@ type Config struct {
 	DisableTimestamp bool	`yaml:"disabletimestamp"`
 
 	PrometheusPort   int    `yaml:"prometheusport"`
-	PrometheusHandle string `yaml:"prometheushandle"`
+	MetricHandle     string `yaml:"metrichandle"`
+	DetailHandle     string `yaml:"detailhandle"`
+	HealthHandle     string `yaml:"healthhandle"`
 
         DefaultUnit      string `yaml:"defaulttimeunit"`
         DefaultTick      int    `yaml:"defaulttimetick"`

@@ -2,12 +2,20 @@ package main
 
 import (
 	"sre-agent/types"
-	"fmt"
+	//"fmt"
 	"github.com/prometheus/client_golang/prometheus"
-        log "github.com/sirupsen/logrus"
-	"net"
+
+	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/host"
+	"github.com/shirou/gopsutil/net"
+	//"github.com/shirou/gopsutil/process"
+
+	log "github.com/sirupsen/logrus"
 	"os"
 	"os/user"
+	"time"
 )
 
 //Define the metrics we wish to expose
@@ -37,9 +45,10 @@ var bytesMetric = prometheus.NewCounterVec(
 )
 
 
-var myContext    types.Context 
-var myModContext types.ModuleContext 
-var myNets       types.Nets
+var myContext     types.Context 
+var myModContext  types.ModuleContext 
+var myStaticInfo  []interface{}
+var myDynamicInfo map[string]interface{}
 
 func init() {
         // Setup logging
@@ -66,24 +75,26 @@ func init() {
 	myContext.ExecuteId, _ = os.Hostname()
 	myContext.AccountId = "000000000000"
 
-	// need to get ALL ip addresses from all interfaces
-        ifaces, _ := net.Interfaces()
-        for _, i := range ifaces {
-                if i.Flags&net.FlagLoopback     != 0 { continue }
-                if i.Flags&net.FlagPointToPoint != 0 { continue }
-                addrs, _ := i.Addrs()
-                if len(addrs) == 0 { continue }
-		myNet := &types.NetInfo{Net: i.Name, MTU: i.MTU, MAC: fmt.Sprintf("%v",i.HardwareAddr)}
-                for  _, addr := range addrs {
-                        var ip net.IP
-                        switch v := addr.(type) {
-                        case *net.IPNet:
-                                ip = v.IP
-                        case *net.IPAddr:
-                                ip = v.IP
-                        }
-			myNet.IP = append(myNet.IP, ip.String())
-                }
-		myNets.Items = append(myNets.Items,*myNet)
+	// Get all the static information about this instance
+	cpu.Percent(0, true)	// this will initialize for future calls!
+	s1, _ := host.Info()
+	s2, _ := net.Interfaces()	
+	s3, _ := disk.Partitions(true)
+	s4, _ := cpu.Info()
+	myStaticInfo = append(myStaticInfo, s1, s2, s3, s4)
+}
+
+func getInfo() {
+        // Get all the static information about this instance
+
+        if myDynamicInfo == nil {
+                myDynamicInfo = make(map[string]interface{},20)
         }
+
+	myDynamicInfo["mem"]           , _ = mem.VirtualMemory()
+	myDynamicInfo["cputimes"]      , _ = cpu.Times(false)
+	myDynamicInfo["cputimes_i"]    , _ = cpu.Times(true)
+	myDynamicInfo["cpupercent"]    , _ = cpu.Percent(10 * time.Millisecond, false)
+	myDynamicInfo["cpupercent_i"]  , _ = cpu.Percent(10 * time.Millisecond, true)
+
 }

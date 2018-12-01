@@ -10,7 +10,9 @@ prettyprint:		true
 disabletimestamp:	false
 # Prometheus metric expose
 prometheusport:		9000
-prometheushandle:	/metrics
+metrichandle:		/metrics
+healthhandle:		/health
+detailhandle:		/detail
 # plugin section
 # defaults for Plugins 
 defaulttimeunit:        Milliseconds
