@@ -126,6 +126,8 @@ func main() {
 		if err != nil { contextLogger.Fatal("Cannot json marshal NET info. Err %s", err) }
 		fmt.Fprintf(w, "%s\n", jsonAnswer)
 	})
+
+	// Launch the Prometheus server that will answer to the /metrics requests
 	go func() {
 		contextLogger.WithFields(log.Fields{"prometheusport": config.PrometheusPort, "prometheuspath": config.PrometheusHandle}).Debug("Beginning metrics")
 		contextLogger.Fatal(http.ListenAndServe(":"+strconv.Itoa(config.PrometheusPort), nil))
