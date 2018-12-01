@@ -21,38 +21,23 @@
 package main
 
 import (
-	//"sre-agent/types"
 	//"encoding/json"
 	"fmt"
 	//"github.com/google/uuid"
 	//"github.com/prometheus/client_golang/prometheus"
 	//      "log"
-	"runtime"
 	"time"
 )
 
 
 func PluginMeasure() ([]byte, float64) {
-        caller := "not available"
-        whoami := "not available"
-
-        pc, _, _, ok := runtime.Caller(1)
-        details := runtime.FuncForPC(pc)
-        if ok && details != nil {
-                caller = details.Name()
-        }
-
-        me, _, _, mok := runtime.Caller(0)
-        mydetails := runtime.FuncForPC(me)
-        if mok && mydetails != nil {
-                whoami = mydetails.Name()
-        }
         timenow := float64(time.Now().UnixNano())/1e9
-        return []byte(fmt.Sprintf(`[{"mcaller": "%s", "mwho": "%s", "measuretime": %f}]`, caller, whoami, timenow)), timenow
+        return []byte(fmt.Sprintf(`[{"measuretime": %f}]`, timenow)), timenow
 }
 
 
 func main() {
+	// for testing purposes only, can safely not exist!
 	arraybyte, timenow := PluginMeasure()
 	fmt.Printf("%#v\n%#v\n", timenow, arraybyte)
 }
