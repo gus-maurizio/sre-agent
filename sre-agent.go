@@ -23,7 +23,7 @@ package main
 import _ "net/http/pprof"
 
 import (
-	"sre-agent/types"
+	"github.com/gus-maurizio/sre-agent/types"
 	"encoding/json"
 	"flag"
 	"fmt"
