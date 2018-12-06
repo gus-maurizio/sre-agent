@@ -1,7 +1,7 @@
 package main
 
 import (
-	"sre-agent/types"
+	"github.com/gus-maurizio/sre-agent/types"
 	//"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 
