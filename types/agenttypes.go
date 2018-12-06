@@ -1,6 +1,8 @@
 package types
 
 import (
+	"net"
+	"os"
 	"time"
 )
 
@@ -72,21 +74,32 @@ type Config struct {
 	DetailHandle     string `yaml:"detailhandle"`
 	HealthHandle     string `yaml:"healthhandle"`
 
-        DefaultUnit      string `yaml:"defaulttimeunit"`
-        DefaultTick      int    `yaml:"defaulttimetick"`
+        DefaultTick      string `yaml:"defaulttimetick"`
+        DefMeasureDest   []string `yaml:"defaultmeasuredest"`
+        DefAlertDest     []string `yaml:"defaultalertdest"`
 
 	Plugins []struct {
 		PluginName   string `yaml:"pluginname"`
 		PluginModule string `yaml:"pluginmodule"`
-		PluginUnit   string `yaml:"plugintimeunit"`
-		PluginTick   int    `yaml:"plugintimetick"`
+		PluginTick   string `yaml:"plugintimetick"`
 		PluginConfig string `yaml:"pluginconfig"`
+		MeasureDest  []string `yaml:"measuredest"`
 	}
 }
 
 type PluginRuntime struct {
 	Ticker     *time.Ticker
 	PluginName string
+}
+
+type PluginState struct {
+	Alert		bool	`json:"alert"`
+	AlertCount	int	`json:"alertcount"`
+	MeasureCount	int	`json:"measurecount"`
+	MeasureFile	bool	`json:"measurefile"`
+	MeasureHandle	*os.File 
+	MeasureConn	net.Conn 
+	AlertConn	net.Conn 
 }
 
 type FuncMeasure func() ([]byte, float64)

@@ -46,6 +46,15 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 	for t := range ticker.C {
 		var myMeasure interface{}
 		measuredata, mymeasuretime := measure()
+		// update the measure count and state	
+		PluginMap[myName].AlertCount += 1
+		logformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"measure\": %s}\n"
+		if PluginMap[myName].MeasureFile {
+			fmt.Fprintf(PluginMap[myName].MeasureHandle, logformat, mymeasuretime, myName, measuredata)
+		} else {
+			fmt.Fprintf(PluginMap[myName].MeasureConn,   logformat, mymeasuretime, myName, measuredata)
+		}
+		
 		err := json.Unmarshal(measuredata, &myMeasure)
 		if err != nil { log.Fatal("unmarshall err %+v",err) }
         	myModuleContext := &types.ModuleContext{ModuleName: myName, RequestId: uuid.New().String(), TraceId: traceid, RunId: myContext.RunId}
@@ -57,6 +66,7 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 			Measure: myMeasure,
 			TimeOverhead: (mymeasuretime - float64(t.UnixNano()) / 1e9) * 1e6,
 		} 
+
 		// Good idea to log
 		pluginLogger.WithFields(log.Fields{"myModuleData": myModuleData}).Info("tick")
 		// Update metrics related to the plugin

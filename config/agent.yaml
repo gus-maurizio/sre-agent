@@ -15,20 +15,20 @@ healthhandle:		/health
 detailhandle:		/detail/
 # plugin section
 # defaults for Plugins 
-defaulttimeunit:        Second
-defaulttimetick:        10
+defaulttimetick:        10s
+defaultmeasuredest:	["unix","/tmp/sre-agent.measure.log"]
 # plugin configuration section
 plugins:
   - pluginname:		plugin_system
     pluginmodule:	./plugins/plugin_system.so
-    plugintimeunit:	Millisecond
-    plugintimetick:	500
-    pluginconfig:	'{ "alert_blue":	"5%", "alert_green": "70%" }'
+    plugintimetick:	500ms
+    pluginconfig:	'{ "alert_blue": "5%", "alert_green": "70%" }'
+    measuredest:	["udp",":4321"]
 #
   - pluginname:         plugin_network
     pluginmodule:       ./plugins/plugin_network.so
-    plugintimeunit:     Millisecond
-    plugintimetick:     300
-    pluginconfig:       '{ "alert_blue":        "15%", "alert_green": "60%" }'
+    plugintimetick:     800ms
+    pluginconfig:       '{ "alert_blue": "15%", "alert_green": "60%" }'
+    measuredest:	["file","/tmp/sre-agent.plugin_network.measure.log"]
 #
 #

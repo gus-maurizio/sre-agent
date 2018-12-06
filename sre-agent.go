@@ -36,6 +36,7 @@ import (
 	"io/ioutil"
 	log "github.com/sirupsen/logrus"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -47,6 +48,7 @@ import (
 )
 
 var PluginSlice []types.PluginRuntime
+var PluginMap   map[string]*types.PluginState
 
 var p = message.NewPrinter(language.English)
 
@@ -139,6 +141,10 @@ func main() {
 			infoAnswer, ierr := json.MarshalIndent(myDynamicDetailInfo, "", "\t") 
 			if ierr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", ierr) }
 			fmt.Fprintf(w, "%s\n", infoAnswer)
+                case config.DetailHandle + "state":
+                        infoAnswer, serr := json.MarshalIndent(PluginMap, "", "\t")
+                        if serr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", serr) }
+                        fmt.Fprintf(w, "%s\n", infoAnswer)
                 case config.DetailHandle + "summary":
                         getInfo()
                         myDynamicInfo["timestamp"] = float64(time.Now().UnixNano())/1e9
@@ -147,7 +153,7 @@ func main() {
                         if ierr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", ierr) }
                         fmt.Fprintf(w, "%s\n", infoAnswer)
 		default:	
-                        fmt.Fprintf(w, "%s\n", "must specify /all or /summary")
+                        fmt.Fprintf(w, "%s\n", "must specify /all /state or /summary")
 		}
         })
 
@@ -161,6 +167,8 @@ func main() {
 	// Start the base plugin
 	// set the timer
 	//pluginMaker(myContext, 200*time.Millisecond, "baseChannelPlugin", basePlugin, baseMeasure)
+	// Create the state machine
+	PluginMap = make(map[string]*types.PluginState,len(config.Plugins))
 
 	// Scan the configuration to load all the plugins
 	for i := range config.Plugins {
@@ -184,21 +192,36 @@ func main() {
                         contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to initialize plugin")
 			pluginInit.(func(string) ())(config.Plugins[i].PluginConfig)
                 }
-		// Compute the TICK between measurements by identifying the unit (Millisecond or Second, if not use Minute)
-		var plugintick time.Duration
-		if config.Plugins[i].PluginUnit == "" { config.Plugins[i].PluginUnit = config.DefaultUnit }
-		switch config.Plugins[i].PluginUnit {
-		case "Second":
-			plugintick = time.Second  
-		case "Millisecond":
-			plugintick = time.Millisecond  
-		default:
-			plugintick = time.Minute  
+		// Compute the TICK between measurements
+		if config.Plugins[i].PluginTick == "" { config.Plugins[i].PluginTick = config.DefaultTick }
+		plugintick, err := time.ParseDuration(config.Plugins[i].PluginTick)
+		if err != nil { plugintick, _ = time.ParseDuration(config.DefaultTick) }
+
+		// initialize the state machine
+		var mConn net.Conn
+		var fConn *os.File
+		fConn = nil
+		if config.Plugins[i].MeasureDest[0] == "file" {
+			fConn, err	= os.OpenFile(config.Plugins[i].MeasureDest[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		} else {
+			mConn, err 	= net.Dial(config.Plugins[i].MeasureDest[0], config.Plugins[i].MeasureDest[1])	
 		}
-		if config.Plugins[i].PluginTick == 0 {config.Plugins[i].PluginTick = config.DefaultTick}
+                if err != nil {
+                        contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing measurement function destination")
+                        os.Exit(16)
+                }
+
+		PluginMap[config.Plugins[i].PluginName]	= &types.PluginState{	Alert:		false,
+										AlertCount:	0,
+										MeasureCount:	0,
+										MeasureFile:    config.Plugins[i].MeasureDest[0] == "file",
+										MeasureConn:	mConn,
+										MeasureHandle:	fConn,
+								       	}
+
 		// Now we have all the elements to call the pluginMaker and pass the parameters
                 contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to create the plugin")
-		pluginMaker(myContext, time.Duration(config.Plugins[i].PluginTick) * plugintick, config.Plugins[i].PluginName, basePlugin, pluginMeasure.(func() ([]uint8, float64)))
+		pluginMaker(myContext, plugintick, config.Plugins[i].PluginName, basePlugin, pluginMeasure.(func() ([]uint8, float64)))
 	}
 
 	//--------------------------------------------------------------------------//
