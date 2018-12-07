@@ -25,8 +25,15 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 	for t := range ticker.C {
 		var myMeasure interface{}
 		measuredata, mymeasuretime := measure()
+		if PluginMap[myName].AlertFunction {
+			PluginMap[myName].AlertMsg, PluginMap[myName].AlertLvl, PluginMap[myName].Alert, PluginMap[myName].AlertError = PluginMap[myName].PluginAlert(measuredata)
+		}
 		// update the measure count and state	
 		PluginMap[myName].MeasureCount += 1
+                if PluginMap[myName].Alert { 
+                        PluginMap[myName].AlertCount =+ 1 
+                }
+
 		logformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"measure\": %s}\n"
 		if PluginMap[myName].MeasureFile {
 			fmt.Fprintf(PluginMap[myName].MeasureHandle, logformat, mymeasuretime, myName, measuredata)

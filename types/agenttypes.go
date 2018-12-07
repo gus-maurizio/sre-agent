@@ -94,6 +94,9 @@ type PluginRuntime struct {
 
 type PluginState struct {
 	Alert		bool	`json:"alert"`
+	AlertMsg	string	`json:"alertmsg"`
+	AlertLvl	string	`json:"alertlvl"`
+	AlertError	error	`json:"alerterror"`
 	AlertFunction	bool	`json:"alertfunction"`
 	AlertCount	int	`json:"alertcount"`
 	MeasureCount	int	`json:"measurecount"`
