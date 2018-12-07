@@ -23,10 +23,10 @@ package main
 import _ "net/http/pprof"
 
 import (
-	"sre-agent/types"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/gus-maurizio/sre-agent/types"
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/text/language"

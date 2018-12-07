@@ -1,7 +1,7 @@
 package main
 
 import (
-	"sre-agent/types"
+	"github.com/gus-maurizio/sre-agent/types"
 	"encoding/json"
 	"fmt"
         "github.com/google/uuid"
