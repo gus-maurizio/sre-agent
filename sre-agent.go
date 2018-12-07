@@ -189,6 +189,14 @@ func main() {
                         contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to initialize plugin")
 			pluginInit.(func(string) ())(config.Plugins[i].PluginConfig)
                 }
+
+                // It is possible that the plugin needs to check for alerts via function exported as symbol PluginAlert
+                // and then pass the measurement made []byte
+                pluginAlert, aerr := plug.Lookup("PluginAlert")
+                if aerr == nil {
+                        contextLogger.Info("There is an Alert defined")
+                }
+
 		// Compute the TICK between measurements
 		if config.Plugins[i].PluginTick == "" { config.Plugins[i].PluginTick = config.DefaultTick }
 		plugintick, err := time.ParseDuration(config.Plugins[i].PluginTick)
@@ -209,11 +217,13 @@ func main() {
                 }
 
 		PluginMap[config.Plugins[i].PluginName]	= &types.PluginState{	Alert:		false,
+										AlertFunction:	aerr == nil,
 										AlertCount:	0,
 										MeasureCount:	0,
 										MeasureFile:    config.Plugins[i].MeasureDest[0] == "file",
 										MeasureConn:	mConn,
 										MeasureHandle:	fConn,
+										PluginAlert:	pluginAlert.(func([]byte) (string, string, bool, error) ),
 								       	}
 
 		// Now we have all the elements to call the pluginMaker and pass the parameters

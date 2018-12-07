@@ -94,12 +94,14 @@ type PluginRuntime struct {
 
 type PluginState struct {
 	Alert		bool	`json:"alert"`
+	AlertFunction	bool	`json:"alertfunction"`
 	AlertCount	int	`json:"alertcount"`
 	MeasureCount	int	`json:"measurecount"`
 	MeasureFile	bool	`json:"measurefile"`
-	MeasureHandle	*os.File 
-	MeasureConn	net.Conn 
-	AlertConn	net.Conn 
+	MeasureHandle	*os.File 	`json:"-"`
+	MeasureConn	net.Conn 	`json:"-"`
+	AlertConn	net.Conn 	`json:"-"`
+	PluginAlert	func([]byte) (string, string, bool, error)	`json:"-"`
 }
 
 type FuncMeasure func() ([]byte, float64)
