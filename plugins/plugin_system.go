@@ -21,30 +21,59 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	log "github.com/sirupsen/logrus"
-	//"github.com/prometheus/client_golang/prometheus"
-	"time"
+        "encoding/json"
+	"errors"
+        "fmt"
+        log "github.com/sirupsen/logrus"
+        //"github.com/prometheus/client_golang/prometheus"
+        "time"
 )
 
 
+var MyConfig  interface{}
+var MyMeasure []byte
+
 func PluginMeasure() ([]byte, float64) {
         timenow := float64(time.Now().UnixNano())/1e9
-        return []byte(fmt.Sprintf(`[{"measuretime": %f}]`, timenow)), timenow
+	MyMeasure = []byte(fmt.Sprintf(`{"measuretime": %f, "myconfig": "%+v"}`, timenow, MyConfig))
+        return MyMeasure, timenow
 }
+
 
 func InitPlugin(config string) () {
-	var myconfig interface{}
-	err := json.Unmarshal([]byte(config), &myconfig)
-	if err != nil {
-		log.WithFields(log.Fields{"config": config}).Error("failed to unmarshal config")
-	}
-	log.WithFields(log.Fields{"jsonconfig": myconfig}).Info("InitPlugin")
+        err := json.Unmarshal([]byte(config), &MyConfig)
+        if err != nil {
+                log.WithFields(log.Fields{"config": config}).Error("failed to unmarshal config")
+        }
+        log.WithFields(log.Fields{"jsonconfig": MyConfig}).Info("InitPlugin")
 }
 
-func main() {
-	// for testing purposes only, can safely not exist!
-	arraybyte, timenow := PluginMeasure()
-	fmt.Printf("%#v\n%#v\n", timenow, arraybyte)
+
+func PluginAlert(measure []byte) (string, string, bool, error) {
+        log.WithFields(log.Fields{"MyMeasure": string(MyMeasure[:]), "measure": string(measure[:])}).Info("PluginAlert")
+	return "", "", false, errors.New("nothing")
 }
+
+
+func main() {
+        // for testing purposes only, can safely not exist!
+	config := " { \"alert\": {    \"blue\":   [0,  3], \"green\":  [3,  60], \"yellow\": [60, 80], \"orange\": [80, 90], \"red\":    [90, 100] } } "
+	InitPlugin(config)
+	log.WithFields(log.Fields{"MyConfig": MyConfig}).Info("InitPlugin")
+	tickd := 1* time.Second
+	for i := 1; i <= 5; i++ {
+		tick := time.Now().UnixNano()
+		measure, timestamp := PluginMeasure()
+		alertmsg, alertlvl, isAlert, err := PluginAlert(measure)
+		fmt.Printf("Iteration #%d tick %d \n", i, tick)
+		log.WithFields(log.Fields{"timestamp": timestamp, 
+					  "measure": string(measure[:]),
+					  "alertmsg": alertmsg,
+					  "alertlvl": alertlvl,
+					  "isAlert":  isAlert,
+					  "err":      err,
+		}).Info("Tick")
+		time.Sleep(tickd)
+	}
+}
+
