@@ -6,30 +6,9 @@ import (
 	"fmt"
         "github.com/google/uuid"
         "github.com/prometheus/client_golang/prometheus"
-        //      "log"
         log "github.com/sirupsen/logrus"
-	"runtime"
 	"time"
 )
-
-func baseMeasure() ([]byte, float64) {
-	caller := "not available"
-	whoami := "not available"
-
-	pc, _, _, ok := runtime.Caller(1)
-	details := runtime.FuncForPC(pc)
-	if ok && details != nil {
-		caller = details.Name()
-	}
-
-	me, _, _, mok := runtime.Caller(0)
-	mydetails := runtime.FuncForPC(me)
-	if mok && mydetails != nil {
-		whoami = mydetails.Name()
-	}
-	timenow := float64(time.Now().UnixNano())/1e9
-	return []byte(fmt.Sprintf(`[{"mcaller": "%s", "mwho": "%s", "measuretime": %f}]`, caller, whoami, timenow)), timenow
-}
 
 func pluginMaker(context types.Context, duration time.Duration, pName string, plugin types.FPlugin, measure  func() ([]uint8, float64)) {
         log.WithFields(log.Fields{"duration": duration, "name": pName}).Debug("pluginMaker")

@@ -164,9 +164,6 @@ func main() {
 	}()
 
 	//--------------------------------------------------------------------------//
-	// Start the base plugin
-	// set the timer
-	//pluginMaker(myContext, 200*time.Millisecond, "baseChannelPlugin", basePlugin, baseMeasure)
 	// Create the state machine
 	PluginMap = make(map[string]*types.PluginState,len(config.Plugins))
 
