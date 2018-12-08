@@ -42,6 +42,56 @@ ubuntu              18.04               93fd78260bd1        2 weeks ago         
 ubuntu              18.10               0bfd76efee03        2 weeks ago         73.7MB
 ubuntu              19.04               d861a21f6090        2 weeks ago         74.9MB
 ```
+### Installing from Version Control
+Before we can create executables from a Go package, we have to obtain its source code. The go get tool can fetch packages from version control systems like GitHub.
+Under the hood, go get clones packages into subdirectories of the $GOPATH/src/ directory.
+Then, if applicable, it installs the package by building its executable and placing it in the $GOPATH/bin directory.
+If you configured Go as described in the prerequisite tutorials, the $GOPATH/bin directory is included in your $PATH environmental variable, which ensures that you can use installed packages from anywhere on your system.
+We will use your home directory for this instructions.
+
+It's common to use go get with the -u flag, which instructs go get to obtain the package and its dependencies, or update those dependencies if they're already present on the machine.
+This command can take a little to finish, since it needs to validate and download all the dependencies.
+No output actually indicates that the command executed successfully.
+
+```
+mkdir -p ~/go/src
+export GOPATH=~/go
+export PATH=$GOPATH/bin:$PATH
+go get -u github.com/gus-maurizio/sre-agent
+```
+The command also builds the executable and places it in the $GOPATH/bin.
+
+In order to build the plugins (either those provided with the distribution, or the ones you can create to extend the agent), a special script has been included in the `scripts` directory.
+Executing the following command will compile **just for the architecture of your build system**, in this case Mac OS X. The last parameter to the `buildplugins.bash` script is the directory where the plugin source code resides. The plugin source **must start with plugin_**. The plugins can reside (*.so) in any directory. This can be specified in the YAML configuration file for the agent.
+```
+bash scripts/buildplugins.bash plugins
+compiling plugins/plugin_cpuram.go
+go build -buildmode=plugin -o plugins/plugin_cpuram.so plugins/plugin_cpuram.go
+compiling plugins/plugin_network.go
+go build -buildmode=plugin -o plugins/plugin_network.so plugins/plugin_network.go
+compiling plugins/plugin_system.go
+go build -buildmode=plugin -o plugins/plugin_system.so plugins/plugin_system.go
+```
+
+#### Rebuild the executable
+To specify a different name or location for the executable, use the -o flag. Let's build an executable called sreagent
+and place it in a build directory (will be created if it does not exist) within the current working directory:
+```
+$ GOOS=`echo "$(uname -s)"| tr '[:upper:]' '[:lower:]'`
+$ GOARCH=amd64
+$ go build -o $GOOS/$GOARCH/sreagent github.com/gus-maurizio/sre-agent
+$ file $GOOS/$GOARCH/sreagent
+darwin/amd64/sreagent: Mach-O 64-bit executable x86_64
+$ otool -L  $GOOS/$GOARCH/sreagent
+darwin/amd64/sreagent:
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation (compatibility version 300.0.0, current version 1560.12.0)
+	/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (compatibility version 1.0.0, current version 275.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1252.200.5)
+	/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 1560.12.0)
+	/System/Library/Frameworks/Security.framework/Versions/A/Security (compatibility version 1.0.0, current version 58286.220.15)
+```
+
 
 ## Monitoring Memory Usage
 The package net/http/pprof can be used.
