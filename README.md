@@ -92,6 +92,21 @@ darwin/amd64/sreagent:
 	/System/Library/Frameworks/Security.framework/Versions/A/Security (compatibility version 1.0.0, current version 58286.220.15)
 ```
 
+### Building for a different OS and architecture
+The go build command lets you build an executable file for any Go-supported target platform, on your platform.
+This means you can test, release and distribute your application without building those executables on the target platforms you wish to use.
+
+Cross-compiling works by setting required environment variables that specify the target operating system and architecture.
+We use the variable GOOS for the target operating system, and GOARCH for the target architecture.
+To build an executable, the command would take this form:
+```
+GOOS=target-OS GOARCH=target-architecture;go build -o $GOOS/$GOARCH/sreagent github.com/gus-maurizio/sre-agent
+```
+In our case we will build for the `linux` OS and `amd64` architecture:
+```
+GOOS=linux GOARCH=amd64;go build -o $GOOS/$GOARCH/sreagent github.com/gus-maurizio/sre-agent
+```
+
 
 ## Monitoring Memory Usage
 The package net/http/pprof can be used.
