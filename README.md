@@ -146,7 +146,7 @@ We will use containers to perform the tests. We will illustrate a few cases:
 $ docker run --rm -it \
     -v $GOPATH/src/github.com/gus-maurizio/sre-agent/linux/amd64:/sreagent \
     -v $GOPATH/src/github.com/gus-maurizio/sre-agent/config/agent.yaml:/etc/agent.yaml \
-    --name centos7 centos:7.5.1804 /bin/bash -c "cd /sreagent && ./sreagent -f /etc/agent.yaml "
+    --name centos7 centos:7.5.1804 /bin/bash -c "cd /sreagent && ./sreagent -f /etc/agent.yaml"
 {
   "level": "info",
   "msg": "Program sreagent [from .] Started",
@@ -160,7 +160,7 @@ Ctrl-C
 $ docker run --rm -it \
     -v $GOPATH/src/github.com/gus-maurizio/sre-agent/linux/amd64:/sreagent \
     -v $GOPATH/src/github.com/gus-maurizio/sre-agent/config/agent.yaml:/etc/agent.yaml \
-    --name centos6 centos:6.10 /bin/bash -c "cd /sreagent && ./sreagent -f /etc/agent.yaml "
+    --name centos6 centos:6.10 /bin/bash -c "cd /sreagent && ./sreagent -f /etc/agent.yaml"
 {
   "level": "info",
   "msg": "Program sreagent [from .] Started",
@@ -175,7 +175,17 @@ Ctrl-C
 $ docker run --rm -it \
     -v $GOPATH/src/github.com/gus-maurizio/sre-agent/linux/amd64:/sreagent \
     -v $GOPATH/src/github.com/gus-maurizio/sre-agent/config/agent.yaml:/etc/agent.yaml \
-    --name ubuntu14 ubuntu:14.04 /bin/bash -c "cd /sreagent && ./sreagent -f /etc/agent.yaml "
+    --name ubuntu14 ubuntu:14.04 /bin/bash -c "cd /sreagent && ./sreagent -f /etc/agent.yaml"
+...
+Ctrl-C    
+```
+
+### Alpine 3.8
+```
+$ docker run --rm -it \
+    -v $GOPATH/src/github.com/gus-maurizio/sre-agent/alpine/amd64:/sreagent \
+    -v $GOPATH/src/github.com/gus-maurizio/sre-agent/config/agent.yaml:/etc/agent.yaml \
+    --name alpine38 alpine:3.8 /bin/sh -c "cd /sreagent && ./sreagent -f /etc/agent.yaml"
 ...
 Ctrl-C    
 ```
