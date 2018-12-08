@@ -17,14 +17,14 @@ Download the docker images for the supported operating systems:
   - 19.04 (disco)
   - 14.04 (trusty)
   - 16.04 (xenial)
- - Alpine
+- Alpine
   - 3.6
   - 3.7
   - 3.8
-  - CentOS
-   - centos:7.6.1810
-   - centos:7.5.1804
-   - centos:6.10
+- CentOS
+  - centos:7.6.1810
+  - centos:7.5.1804
+  - centos:6.10
 
 Verify all are properly loaded:
 ```
