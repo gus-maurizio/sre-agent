@@ -106,7 +106,49 @@ In our case we will build for the `linux` OS and `amd64` architecture:
 ```
 GOOS=linux GOARCH=amd64;go build -o $GOOS/$GOARCH/sreagent github.com/gus-maurizio/sre-agent
 ```
+Unfortunately this will only work in Mac OS X if you **do not have the need for CGO**.
+If your plugin requires C code (like we indeed do), this will not work. Fortunately there is a solution!
 
+### Using Docker to cross compile (and test!)
+Download the docker image to compile: `golang:1.11.2-alpine3.8` and verify:
+```
+$ docker images|grep -e REPO -e ^golang
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+golang              1.11.2-alpine3.8    57915f96905a        5 weeks ago         310MB
+
+$ docker run --rm -it -v $GOPATH:/tmp --name goalpine golang:1.11.2-alpine3.8 /bin/sh
+/go # apk update
+/go # apk add git gcc musl-dev bash file libc-dev
+/go # go get -u github.com/gus-maurizio/sre-agent
+/go # cd src/github.com/gus-maurizio/sre-agent
+/go # find linux/ darwin/ -type f |xargs rm
+/go # bash scripts/buildplugins.bash plugins linux amd64
+go build -o linux/amd64/sreagent github.com/gus-maurizio/sre-agent
+compiling plugins/plugin_cpuram.go
+go build -buildmode=plugin -o linux/amd64/plugins/plugin_cpuram.so plugins/plugin_cpuram.go
+# command-line-arguments
+loadinternal: cannot find runtime/cgo
+compiling plugins/plugin_network.go
+go build -buildmode=plugin -o linux/amd64/plugins/plugin_network.so plugins/plugin_network.go
+# command-line-arguments
+loadinternal: cannot find runtime/cgo
+compiling plugins/plugin_system.go
+go build -buildmode=plugin -o linux/amd64/plugins/plugin_system.so plugins/plugin_system.go
+# command-line-arguments
+loadinternal: cannot find runtime/cgo
+linux/amd64/plugins/plugin_network.so: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, not stripped
+linux/amd64/plugins/plugin_system.so:  ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, not stripped
+linux/amd64/plugins/plugin_cpuram.so:  ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, not stripped
+linux/amd64/sreagent:                  ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-x86_64.so.1, not stripped
+/go #
+/go #
+
+
+/go # cd $GOPATH/src/github.com/gus-maurizio/sre-agent
+/go/src/github.com/gus-maurizio/sre-agent #
+
+```
 
 ## Monitoring Memory Usage
 The package net/http/pprof can be used.

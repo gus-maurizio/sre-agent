@@ -14,3 +14,4 @@ do
     CGO_ENABLED=0 go build -buildmode=plugin -o $GOOS/$GOARCH/$object $i
 done
 find $plugos -type f | xargs file
+find $plugos -type f | xargs -I {} ldd {}
