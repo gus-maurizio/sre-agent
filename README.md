@@ -64,13 +64,7 @@ The command also builds the executable and places it in the $GOPATH/bin.
 In order to build the plugins (either those provided with the distribution, or the ones you can create to extend the agent), a special script has been included in the `scripts` directory.
 Executing the following command will compile **just for the architecture of your build system**, in this case Mac OS X. The last parameter to the `buildplugins.bash` script is the directory where the plugin source code resides. The plugin source **must start with plugin_**. The plugins can reside (*.so) in any directory. This can be specified in the YAML configuration file for the agent.
 ```
-bash scripts/buildplugins.bash plugins
-compiling plugins/plugin_cpuram.go
-go build -buildmode=plugin -o plugins/plugin_cpuram.so plugins/plugin_cpuram.go
-compiling plugins/plugin_network.go
-go build -buildmode=plugin -o plugins/plugin_network.so plugins/plugin_network.go
-compiling plugins/plugin_system.go
-go build -buildmode=plugin -o plugins/plugin_system.so plugins/plugin_system.go
+bash scripts/buildplugins.bash plugins darwin amd64
 ```
 
 #### Rebuild the executable
@@ -128,6 +122,21 @@ $ docker run --rm -it -v $GOPATH:/mnt --name goubuntu ubuntu:18.04 /bin/bash
 # find /mnt/src/github.com/gus-maurizio/sre-agent/linux -type f | xargs file
 ```
 Now you have the linux and darwin versions ready to execute.
+
+#### Alpine special case
+For some (unknown to me) reason, Alpine does not exactly behave like other Unixes.
+```
+$ docker run --rm -it -v $GOPATH:/mnt --name golang golang:1.11.2-alpine3.8 /bin/sh
+# apk update && apk add -y gcc file git curl wget musl-dev
+# go get -u github.com/gus-maurizio/sre-agent
+# cd $GOPATH/src/github.com/gus-maurizio/sre-agent
+# sh scripts/buildplugins.bash plugins linux amd64
+# find /mnt/src/github.com/gus-maurizio/sre-agent/alpine -type f | xargs rm
+# mkdir -p /mnt/src/github.com/gus-maurizio/sre-agent/alpine/
+# cp -r linux/* /mnt/src/github.com/gus-maurizio/sre-agent/alpine/
+# find /mnt/src/github.com/gus-maurizio/sre-agent/alpine -type f | xargs file
+```
+
 
 ## Testing in different version of Unix
 For this purpose we will ensure the agent loads and runs a basic configuration.
