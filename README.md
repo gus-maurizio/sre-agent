@@ -113,21 +113,64 @@ If your plugin requires C code (like we indeed do), this will not work. Fortunat
 Use an ubuntu image to compile:
 ```
 $ docker run --rm -it -v $GOPATH:/mnt --name goubuntu ubuntu:18.04 /bin/bash
-apt update && apt install -y gcc file git curl wget
-curl -O https://storage.googleapis.com/golang/go1.11.2.linux-amd64.tar.gz
-tar -xvf go1.11.2.linux-amd64.tar.gz && mv go /usr/local
-export GOROOT=/usr/local/go
-export GOPATH=/tmp
-export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
-mkdir $GOPATH/src
-go get -u github.com/gus-maurizio/sre-agent
-cd $GOPATH/src/github.com/gus-maurizio/sre-agent
-bash scripts/buildplugins.bash plugins linux amd64
-find /mnt/src/github.com/gus-maurizio/sre-agent/linux -type f | xargs rm
-cp -r linux /mnt/src/github.com/gus-maurizio/sre-agent/
-find /mnt/src/github.com/gus-maurizio/sre-agent/linux -type f | xargs file
-
+# apt update && apt install -y gcc file git curl wget
+# curl -O https://storage.googleapis.com/golang/go1.11.2.linux-amd64.tar.gz
+# tar -xvf go1.11.2.linux-amd64.tar.gz && mv go /usr/local
+# export GOROOT=/usr/local/go
+# export GOPATH=/tmp
+# export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+# mkdir $GOPATH/src
+# go get -u github.com/gus-maurizio/sre-agent
+# cd $GOPATH/src/github.com/gus-maurizio/sre-agent
+# bash scripts/buildplugins.bash plugins linux amd64
+# find /mnt/src/github.com/gus-maurizio/sre-agent/linux -type f | xargs rm
+# cp -r linux /mnt/src/github.com/gus-maurizio/sre-agent/
+# find /mnt/src/github.com/gus-maurizio/sre-agent/linux -type f | xargs file
 ```
+Now you have the linux and darwin versions ready to execute.
+
+## Testing in different version of Unix
+For this purpose we will ensure the agent loads and runs a basic configuration.
+We will use containers to perform the tests. We will illustrate a few cases:
+### CentOS 7
+```
+$ docker run --rm -it \
+    -v $GOPATH/src/github.com/gus-maurizio/sre-agent/linux/amd64:/sreagent \
+    -v $GOPATH/src/github.com/gus-maurizio/sre-agent/config/agent.yaml:/etc/agent.yaml \
+    --name centos7 centos:7.5.1804 /bin/bash -c "cd /sreagent && ./sreagent -f /etc/agent.yaml "
+{
+  "level": "info",
+  "msg": "Program sreagent [from .] Started",
+  "time": "2018-12-08T21:02:55Z"
+}
+...
+Ctrl-C    
+```
+### CentOS 6
+```
+$ docker run --rm -it \
+    -v $GOPATH/src/github.com/gus-maurizio/sre-agent/linux/amd64:/sreagent \
+    -v $GOPATH/src/github.com/gus-maurizio/sre-agent/config/agent.yaml:/etc/agent.yaml \
+    --name centos6 centos:6.10 /bin/bash -c "cd /sreagent && ./sreagent -f /etc/agent.yaml "
+{
+  "level": "info",
+  "msg": "Program sreagent [from .] Started",
+  "time": "2018-12-08T21:02:55Z"
+}
+...
+Ctrl-C    
+```
+
+### Ubuntu 14.04
+```
+$ docker run --rm -it \
+    -v $GOPATH/src/github.com/gus-maurizio/sre-agent/linux/amd64:/sreagent \
+    -v $GOPATH/src/github.com/gus-maurizio/sre-agent/config/agent.yaml:/etc/agent.yaml \
+    --name ubuntu14 ubuntu:14.04 /bin/bash -c "cd /sreagent && ./sreagent -f /etc/agent.yaml "
+...
+Ctrl-C    
+```
+
 
 ## Monitoring Memory Usage
 The package net/http/pprof can be used.
