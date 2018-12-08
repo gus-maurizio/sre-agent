@@ -11,7 +11,7 @@ do
     echo compiling $i
     object=$(echo $i | sed 's/.go/.so/')
     echo go build -buildmode=plugin -o $GOOS/$GOARCH/$object $i
-    CGO_ENABLED=0 go build -buildmode=plugin -o $GOOS/$GOARCH/$object $i
+    go build -buildmode=plugin -o $GOOS/$GOARCH/$object $i
 done
 find $plugos -type f | xargs file
 find $plugos -type f | xargs -I {} ldd {}

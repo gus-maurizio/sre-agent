@@ -110,43 +110,22 @@ Unfortunately this will only work in Mac OS X if you **do not have the need for 
 If your plugin requires C code (like we indeed do), this will not work. Fortunately there is a solution!
 
 ### Using Docker to cross compile (and test!)
-Download the docker image to compile: `golang:1.11.2-alpine3.8` and verify:
+Use an ubuntu image to compile:
 ```
-$ docker images|grep -e REPO -e ^golang
-REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
-REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
-golang              1.11.2-alpine3.8    57915f96905a        5 weeks ago         310MB
-
-$ docker run --rm -it -v $GOPATH:/tmp --name goalpine golang:1.11.2-alpine3.8 /bin/sh
-/go # apk update
-/go # apk add git gcc musl-dev bash file libc-dev
-/go # go get -u github.com/gus-maurizio/sre-agent
-/go # cd src/github.com/gus-maurizio/sre-agent
-/go # find linux/ darwin/ -type f |xargs rm
-/go # bash scripts/buildplugins.bash plugins linux amd64
-go build -o linux/amd64/sreagent github.com/gus-maurizio/sre-agent
-compiling plugins/plugin_cpuram.go
-go build -buildmode=plugin -o linux/amd64/plugins/plugin_cpuram.so plugins/plugin_cpuram.go
-# command-line-arguments
-loadinternal: cannot find runtime/cgo
-compiling plugins/plugin_network.go
-go build -buildmode=plugin -o linux/amd64/plugins/plugin_network.so plugins/plugin_network.go
-# command-line-arguments
-loadinternal: cannot find runtime/cgo
-compiling plugins/plugin_system.go
-go build -buildmode=plugin -o linux/amd64/plugins/plugin_system.so plugins/plugin_system.go
-# command-line-arguments
-loadinternal: cannot find runtime/cgo
-linux/amd64/plugins/plugin_network.so: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, not stripped
-linux/amd64/plugins/plugin_system.so:  ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, not stripped
-linux/amd64/plugins/plugin_cpuram.so:  ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, not stripped
-linux/amd64/sreagent:                  ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-x86_64.so.1, not stripped
-/go #
-/go #
-
-
-/go # cd $GOPATH/src/github.com/gus-maurizio/sre-agent
-/go/src/github.com/gus-maurizio/sre-agent #
+$ docker run --rm -it -v $GOPATH:/mnt --name goubuntu ubuntu:18.04 /bin/bash
+apt update && apt install -y gcc file git curl wget
+curl -O https://storage.googleapis.com/golang/go1.11.2.linux-amd64.tar.gz
+tar -xvf go1.11.2.linux-amd64.tar.gz && mv go /usr/local
+export GOROOT=/usr/local/go
+export GOPATH=/tmp
+export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+mkdir $GOPATH/src
+go get -u github.com/gus-maurizio/sre-agent
+cd $GOPATH/src/github.com/gus-maurizio/sre-agent
+bash scripts/buildplugins.bash plugins linux amd64
+find /mnt/src/github.com/gus-maurizio/sre-agent/linux -type f | xargs rm
+cp -r linux /mnt/src/github.com/gus-maurizio/sre-agent/
+find /mnt/src/github.com/gus-maurizio/sre-agent/linux -type f | xargs file
 
 ```
 
