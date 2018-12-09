@@ -77,13 +77,30 @@ type Config struct {
         DefaultTick      string `yaml:"defaulttimetick"`
         DefMeasureDest   []string `yaml:"defaultmeasuredest"`
         DefAlertDest     []string `yaml:"defaultalertdest"`
+        DefWarnDest      []string `yaml:"defaultwarndest"`
+
+	DefaultRollW1	string `yaml:"defaultrollingwindow1"`
+	DefaultRollW2	string `yaml:"defaultrollingwindow2"`
+
+	DefaultErrT1	int	`yaml:"defaulterrorthresh1"`
+	DefaultWarnT1	int	`yaml:"defaultwarnthresh1"`
+        DefaultErrT2    int     `yaml:"defaulterrorthresh2"`
+        DefaultWarnT2   int     `yaml:"defaultwarnthresh12`
 
 	Plugins []struct {
 		PluginName   string `yaml:"pluginname"`
 		PluginModule string `yaml:"pluginmodule"`
-		PluginTick   string `yaml:"plugintimetick"`
-		PluginConfig string `yaml:"pluginconfig"`
 		MeasureDest  []string `yaml:"measuredest"`
+		AlertDest    []string `yaml:"alertdest"`
+		WarnDest     []string `yaml:"warndest"`
+		PluginTick   string `yaml:"plugintimetick"`
+		PluginRollW1 string `yaml:"plugintrollingwindow1"`
+		PluginRollW2 string `yaml:"plugintrollingwindow2"`
+		PluginConfig string `yaml:"pluginconfig"`
+        	PluginErrT1  int    `yaml:"pluginerrorthresh1"`
+        	PluginWarnT1 int    `yaml:"pluginwarnthresh1"`
+                PluginErrT2  int    `yaml:"pluginerrorthresh2"`
+                PluginWarnT2 int    `yaml:"pluginwarnthresh2"`
 	}
 }
 
@@ -99,6 +116,10 @@ type PluginState struct {
 	AlertError	error	`json:"alerterror"`
 	AlertFunction	bool	`json:"alertfunction"`
 	AlertCount	int	`json:"alertcount"`
+
+        Warning         bool    `json:"warning"`
+        WarningCount    int     `json:"warningcount"`
+
 	MeasureCount	int	`json:"measurecount"`
 	MeasureFile	bool	`json:"measurefile"`
 	MeasureHandle	*os.File 	`json:"-"`
