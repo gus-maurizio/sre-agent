@@ -203,9 +203,14 @@ func main() {
 		if err != nil { plugintick, _ = time.ParseDuration(config.DefaultTick) }
 
 		// initialize the state machine
-		var mConn net.Conn
-		var fConn *os.File
-		fConn = nil
+		var mConn,nConn,oConn net.Conn
+		var fConn,gConn,hConn *os.File
+		//--- Ensure Dests are defined at plugin level or get them to be the default ones
+		if len(config.Plugins[i].MeasureDest) != 2 { config.Plugins[i].MeasureDest = config.DefMeasureDest }
+		if len(config.Plugins[i].AlertDest)   != 2 { config.Plugins[i].AlertDest   = config.DefAlertDest }
+		if len(config.Plugins[i].WarnDest)    != 2 { config.Plugins[i].WarnDest    = config.DefWarnDest }
+		//--- Measure Dest
+		fConn, gConn, hConn = nil, nil, nil
 		if config.Plugins[i].MeasureDest[0] == "file" {
 			fConn, err	= os.OpenFile(config.Plugins[i].MeasureDest[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		} else {
@@ -215,14 +220,43 @@ func main() {
                         contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing measurement function destination")
                         os.Exit(16)
                 }
+                //--- Alert Dest
+                if config.Plugins[i].AlertDest[0] == "file" {
+                        gConn, err      = os.OpenFile(config.Plugins[i].AlertDest[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+                } else {
+                        nConn, err      = net.Dial(config.Plugins[i].AlertDest[0], config.Plugins[i].AlertDest[1])
+                }
+                if err != nil {
+                        contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing alert function destination")
+                        os.Exit(16)
+                }
+                //--- Warning Dest
+                if config.Plugins[i].WarnDest[0] == "file" {
+                        hConn, err      = os.OpenFile(config.Plugins[i].WarnDest[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+                } else {
+                        oConn, err      = net.Dial(config.Plugins[i].WarnDest[0], config.Plugins[i].WarnDest[1])
+                }
+                if err != nil {
+                        contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing warning function destination")
+                        os.Exit(16)
+                }
 
 		PluginMap[config.Plugins[i].PluginName]	= &types.PluginState{	Alert:		false,
 										AlertFunction:	aerr == nil,
-										AlertCount:	0,
 										MeasureCount:	0,
 										MeasureFile:    config.Plugins[i].MeasureDest[0] == "file",
 										MeasureConn:	mConn,
 										MeasureHandle:	fConn,
+										AlertCount:	0,
+                                                                                AlertFile:    	config.Plugins[i].AlertDest[0] == "file",
+                                                                                AlertConn:    	nConn,
+                                                                                AlertHandle:  	gConn,
+
+                                                                                WarnCount:      0,
+                                                                                WarnFile:       config.Plugins[i].WarnDest[0] == "file",
+                                                                                WarnConn:       oConn,
+                                                                                WarnHandle:     hConn,
+
 										PluginAlert:	pluginAlert.(func([]byte) (string, string, bool, error) ),
 								       	}
 

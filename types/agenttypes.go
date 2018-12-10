@@ -110,21 +110,28 @@ type PluginRuntime struct {
 }
 
 type PluginState struct {
-	Alert		bool	`json:"alert"`
-	AlertMsg	string	`json:"alertmsg"`
-	AlertLvl	string	`json:"alertlvl"`
-	AlertError	error	`json:"alerterror"`
-	AlertFunction	bool	`json:"alertfunction"`
-	AlertCount	int	`json:"alertcount"`
+	AlertMsg	string		`json:"alertmsg"`
+	AlertLvl	string		`json:"alertlvl"`
+	AlertError	error		`json:"alerterror"`
+	AlertFunction	bool		`json:"alertfunction"`
 
-        Warning         bool    `json:"warning"`
-        WarningCount    int     `json:"warningcount"`
-
-	MeasureCount	int	`json:"measurecount"`
-	MeasureFile	bool	`json:"measurefile"`
+	MeasureCount	int		`json:"measurecount"`
+	MeasureFile	bool		`json:"measurefile"`
 	MeasureHandle	*os.File 	`json:"-"`
 	MeasureConn	net.Conn 	`json:"-"`
+
+	Alert		bool		`json:"alert"`
+	AlertCount	int        	`json:"alertcount"`
+        AlertFile       bool            `json:"alertfile"`
+        AlertHandle     *os.File        `json:"-"`
 	AlertConn	net.Conn 	`json:"-"`
+
+        Warning         bool            `json:"warning"`
+        WarnCount       int             `json:"warncount"`
+        WarnFile        bool            `json:"warnfile"`
+        WarnHandle      *os.File        `json:"-"`
+	WarnConn	net.Conn 	`json:"-"`
+
 	PluginAlert	func([]byte) (string, string, bool, error)	`json:"-"`
 }
 
