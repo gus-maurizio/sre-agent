@@ -104,7 +104,7 @@ Unfortunately this will only work in Mac OS X if you **do not have the need for 
 If your plugin requires C code (like we indeed do), this will not work. Fortunately there is a solution!
 
 ### Using Docker to cross compile (and test!)
-Use an ubuntu image to compile:
+#### Use an ubuntu image to compile from scratch:
 ```
 $ docker run --rm -it -v $GOPATH:/mnt --name goubuntu ubuntu:18.04 /bin/bash
 # apt update && apt install -y gcc file git curl wget
@@ -115,15 +115,27 @@ $ docker run --rm -it -v $GOPATH:/mnt --name goubuntu ubuntu:18.04 /bin/bash
 # export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 # mkdir $GOPATH/src
 # go get -u github.com/gus-maurizio/sre-agent
-# cd $GOPATH/src/github.com/gus-maurizio/sre-agent
-# bash scripts/buildplugins.bash plugins linux amd64
-# find /mnt/src/github.com/gus-maurizio/sre-agent/linux -type f | xargs rm
-# cp -r linux /mnt/src/github.com/gus-maurizio/sre-agent/
-# find /mnt/src/github.com/gus-maurizio/sre-agent/linux -type f | xargs file
+# go get -u github.com/gus-maurizio/plugin_cpu
+# go get -u github.com/gus-maurizio/plugin_mem
+# go get -u github.com/gus-maurizio/plugin_disk
+# cd $GOPATH/src/github.com/gus-maurizio
+# bash sre-agent/scripts/build.bash
 ```
-Now you have the linux and darwin versions ready to execute.
+#### Use an ubuntu image to compile from existing:
+```
+$ docker run --rm -it -v $GOPATH:/mnt --name goubuntu ubuntu:18.04 /bin/bash
+# apt update && apt install -y gcc file git curl wget
+# curl -O https://storage.googleapis.com/golang/go1.11.2.linux-amd64.tar.gz
+# tar -xvf go1.11.2.linux-amd64.tar.gz && mv go /usr/local
+# export GOROOT=/usr/local/go
+# export GOPATH=/mnt
+# export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+# cd $GOPATH/src/github.com/gus-maurizio
+# bash scripts/buildplugins.bash plugins linux amd64
+# bash sre-agent/scripts/build.bash
+```
 
-#### Alpine special case
+#### Alpine special case (needs review)
 For some (unknown to me) reason, Alpine does not exactly behave like other Unixes.
 ```
 $ docker run --rm -it -v $GOPATH:/mnt --name golang golang:1.11.2-alpine3.8 /bin/sh
