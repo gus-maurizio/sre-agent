@@ -18,5 +18,6 @@ do
   echo go build -o $GOPATH/src/$repo/$i/$(uname -s)/$i $GOPATH/src/$repo/$i
   go build -o $GOPATH/src/$repo/$i/$(uname -s)/$i $GOPATH/src/$repo/$i
 done
-#[ "$plugos" == "darwin" ] && find plugin_* -name '*.so' -type f | xargs -I {} otool -L {}
-#find "${plugin_}*" -type f | xargs -I {} ldd {}
+find $GOPATH/src/github.com/gus-maurizio/*/$(uname -s) -type f|xargs file
+[ "$(uname -s)" == "Darwin" ] && find $GOPATH/src/github.com/gus-maurizio/*/$(uname -s) -type f | xargs -I {} otool -L {}
+[ "$(uname -s)" == "Linux"  ] && find $GOPATH/src/github.com/gus-maurizio/*/$(uname -s) -type f | xargs -I {} ldd {}
