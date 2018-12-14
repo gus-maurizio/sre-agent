@@ -65,5 +65,28 @@ plugins:
 '
 #
 #
+  - pluginname:                 plugin_mem
+    measuredest:                ["file","/tmp/sre-agent.mem.measure.log"]
+    alertdest:                  ["udp",":4326"]
+    warndest:                   ["udp",":4327"]
+    pluginmodule:               ./plugin_mem/Linux/plugin_mem.so
+    plugintimetick:             500ms
+    pluginrollingwindow1:       1m
+    pluginrollingwindow2:       1h
+    pluginerrorthresh1:         5
+    pluginwarnthresh1:          50
+    #
+    pluginerrorthresh2:         30
+    pluginwarnthresh2:          50
+    pluginconfig:               '
+                                {"alert": {
+                                            "mem":              {"low": 10, "design": 70.0, "engineered": 90.0}
+                                          }
+                                }
+'
+#
+#
+#
+#
 #------------------------------------------------------------------------------#
 #
