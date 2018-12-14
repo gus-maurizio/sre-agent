@@ -1,15 +1,22 @@
 #!/usr/bin/env bash
-plugdir=${1:-plugins}
-plugos=${2:-darwin}
-plugarch=${3:-amd64}
-echo go build -o $plugos/$plugarch/sreagent github.com/gus-maurizio/sre-agent
-go build -o $plugos/$plugarch/sreagent github.com/gus-maurizio/sre-agent
-for i in $(find ${plugdir} -type f -name 'plugin_*.go')
-do
-    echo compiling $i
-    object=$(echo $i | sed 's/.go/.so/')
-    echo go build -buildmode=plugin -o $plugos/$plugarch/$object $i
-    go build -buildmode=plugin -o $plugos/$plugarch/$object $i
+go build -buildmode=plugin -o $GOPATH/src/github.com/gus-maurizio/plugin_mem/$(uname -s)/plugin_mem.so $GOPATH/src/github.com/gus-maurizio/plugin_mem/plugin_mem.go
+repo=github.com/gus-maurizio
+pack="plugin_mem plugin_cpu plugin_disk"
+packages=${1:-$pack}
+mod="sre-agent"
+mainmod=${2:-$mod}
+
+for i in $packages
+do 
+  echo Building $i 
+  echo go build -buildmode=plugin -o $GOPATH/src/$repo/$i/$(uname -s)/$i.so $GOPATH/src/$repo/$i/$i.go 
+  go build -buildmode=plugin -o $GOPATH/src/$repo/$i/$(uname -s)/$i.so $GOPATH/src/$repo/$i/$i.go 
 done
-find $plugos -type f | xargs file
-find $plugos -type f | xargs -I {} ldd {}
+for i in $mainmod
+do
+  echo Building $i
+  echo go build -o $GOPATH/src/$repo/$i/$(uname -s)/$i $GOPATH/src/$repo/$i
+  go build -o $GOPATH/src/$repo/$i/$(uname -s)/$i $GOPATH/src/$repo/$i
+done
+#[ "$plugos" == "darwin" ] && find plugin_* -name '*.so' -type f | xargs -I {} otool -L {}
+#find "${plugin_}*" -type f | xargs -I {} ldd {}
