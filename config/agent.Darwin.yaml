@@ -44,7 +44,8 @@ defaultwarnthresh2:    40
 # plugin configuration section
 plugins:
   - pluginname:			plugin_cpu
-    measuredest:		["udp",":4321"]
+    #measuredest:		["udp",":4321"]
+    measuredest:                ["file","/tmp/sre-agent.cpu.measure.log"]
     alertdest:			["udp",":4322"]
     warndest:			["udp",":4323"]
     pluginmodule:		./plugin_cpu/Darwin/plugin_cpu.so
