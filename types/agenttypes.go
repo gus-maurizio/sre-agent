@@ -135,7 +135,7 @@ type PluginState struct {
 	PluginAlert	func([]byte) (string, string, bool, error)	`json:"-"`
 }
 
-type FuncMeasure func() ([]byte, float64)
+type FuncMeasure func() ([]byte, []byte, float64)
 
 type FuncPlugin func(Context, string, *time.Ticker, FuncMeasure)
 

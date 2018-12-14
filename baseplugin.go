@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func pluginMaker(context types.Context, duration time.Duration, pName string, plugin types.FPlugin, measure  func() ([]uint8, float64)) {
+func pluginMaker(context types.Context, duration time.Duration, pName string, plugin types.FPlugin, measure  func() ([]uint8, []uint8, float64)) {
         log.WithFields(log.Fields{"duration": duration, "name": pName}).Debug("pluginMaker")
 	pRuntime := types.PluginRuntime{Ticker: time.NewTicker(duration), PluginName: pName}
 	PluginSlice = append(PluginSlice, pRuntime)
@@ -24,7 +24,7 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 	defer ticker.Stop()
 	for t := range ticker.C {
 		var myMeasure interface{}
-		measuredata, mymeasuretime := measure()
+		measuredata, _, mymeasuretime := measure()
 		if PluginMap[myName].AlertFunction {
 			PluginMap[myName].AlertMsg, PluginMap[myName].AlertLvl, PluginMap[myName].Alert, PluginMap[myName].AlertError = PluginMap[myName].PluginAlert(measuredata)
 		}

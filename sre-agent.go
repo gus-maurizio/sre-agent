@@ -247,22 +247,22 @@ func main() {
 										MeasureFile:    config.Plugins[i].MeasureDest[0] == "file",
 										MeasureConn:	mConn,
 										MeasureHandle:	fConn,
-										AlertCount:	0,
-                                                                                AlertFile:    	config.Plugins[i].AlertDest[0] == "file",
-                                                                                AlertConn:    	nConn,
-                                                                                AlertHandle:  	gConn,
+										AlertCount:		0,
+                                        AlertFile:    	config.Plugins[i].AlertDest[0] == "file",
+                                        AlertConn:    	nConn,
+                                        AlertHandle:  	gConn,
 
-                                                                                WarnCount:      0,
-                                                                                WarnFile:       config.Plugins[i].WarnDest[0] == "file",
-                                                                                WarnConn:       oConn,
-                                                                                WarnHandle:     hConn,
+                                        WarnCount:      0,
+                                        WarnFile:       config.Plugins[i].WarnDest[0] == "file",
+                                        WarnConn:       oConn,
+                                        WarnHandle:     hConn,
 
 										PluginAlert:	pluginAlert.(func([]byte) (string, string, bool, error) ),
 								       	}
 
 		// Now we have all the elements to call the pluginMaker and pass the parameters
                 contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to create the plugin")
-		pluginMaker(myContext, plugintick, config.Plugins[i].PluginName, basePlugin, pluginMeasure.(func() ([]uint8, float64)))
+		pluginMaker(myContext, plugintick, config.Plugins[i].PluginName, basePlugin, pluginMeasure.(func() ([]uint8, []uint8, float64)))
 	}
 
 	//--------------------------------------------------------------------------//

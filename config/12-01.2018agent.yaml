@@ -43,12 +43,13 @@ defaultwarnthresh2:    40
 #------------------------------------------------------------------------------#
 # plugin configuration section
 plugins:
-  - pluginname:			plugin_cpu
+  - pluginname:			plugin_system
     measuredest:		["udp",":4321"]
     alertdest:			["udp",":4322"]
     warndest:			["udp",":4323"]
-    pluginmodule:		./plugin_cpu/Darwin/plugin_cpu.so
-    plugintimetick:		100ms
+    pluginmodule:		./darwin/amd64/plugins/plugin_system.so
+    plugintimetick:		10s
+    pluginconfig:		'{ "alert_blue": "5%", "alert_green": "70%" }'
     pluginrollingwindow1:	1m
     pluginrollingwindow2:	5m
     pluginerrorthresh1:    	3
@@ -56,14 +57,20 @@ plugins:
     #
     pluginerrorthresh2:    	10
     pluginwarnthresh2:    	40
-    pluginconfig:		'
-                                {"alert": {
-                                            "cpu":              {"low": 2, "design": 60.0, "engineered": 80.0},
-                                            "anycpu":   {"low": 0, "design": 75.0, "engineered": 90.0}
-                                          }
-                                }
-'
 #
+  - pluginname:         plugin_network
+    measuredest:	["file","/tmp/sre-agent.plugin_network.measure.log"]
+    pluginmodule:       ./darwin/amd64/plugins/plugin_network.so
+    plugintimetick:     2s
+    pluginconfig:       '
+{ "alert": {    "blue":   [0,  3], 
+		"green":  [3,  60],
+		"yellow": [60, 80],
+		"orange": [80, 90],
+		"red":    [90, 100]
+	   } 
+}
+'
 #
 #------------------------------------------------------------------------------#
 #
