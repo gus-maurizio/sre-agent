@@ -53,16 +53,16 @@ var myDynamicInfo        map[string]interface{}
 var myDynamicDetailInfo  map[string]interface{}
 
 func init() {
-        // Setup logging
-        //log.SetFormatter(&log.JSONFormatter{})
-        log.SetOutput(os.Stdout)
-        log.SetLevel(log.InfoLevel)
-        log.SetFormatter(&log.TextFormatter{
-                DisableColors: false,
-                FullTimestamp: true,
-                })
-        // This can be removed if CPU overhead is too high
-        //log.SetReportCaller(true)
+    // Setup logging
+    //log.SetFormatter(&log.JSONFormatter{})
+    log.SetOutput(os.Stdout)
+    log.SetLevel(log.InfoLevel)
+    log.SetFormatter(&log.TextFormatter{
+            DisableColors: false,
+            FullTimestamp: true,
+            })
+    // This can be removed if CPU overhead is too high
+    //log.SetReportCaller(true)
 
 	// Register metrics with prometheus
 	prometheus.MustRegister(overheadMetric)
@@ -87,11 +87,11 @@ func init() {
 }
 
 func getInfo() {
-        // Get all the static information about this instance
+	// Get all the static information about this instance
 
-        if myDynamicInfo == nil {
-                myDynamicInfo = make(map[string]interface{},20)
-        }
+	if myDynamicInfo == nil {
+		myDynamicInfo = make(map[string]interface{},20)
+	}
 
 	myDynamicInfo["mem"]           , _ = mem.VirtualMemory()
 	myDynamicInfo["cputimes"]      , _ = cpu.Times(false)
@@ -101,27 +101,26 @@ func getInfo() {
 }
 
 func getDetailInfo() {
-        // Get all the static information about this instance
+    // Get all the static information about this instance
 
-        if myDynamicDetailInfo == nil {
-                myDynamicDetailInfo = make(map[string]interface{},20)
-        }
+    if myDynamicDetailInfo == nil {
+            myDynamicDetailInfo = make(map[string]interface{},20)
+    }
 
-        myDynamicDetailInfo["cputimes_i"]    , _ = cpu.Times(true)
-        myDynamicDetailInfo["cpupercent_i"]  , _ = cpu.Percent(200 * time.Millisecond, true)
-        myDynamicDetailInfo["users"]         , _ = host.Users()
-        myDynamicDetailInfo["netcounters_i"] , _ = net.IOCounters(true)
-        myDynamicDetailInfo["netconnections"], _ = net.Connections("all")
+    myDynamicDetailInfo["cputimes_i"]    , _ = cpu.Times(true)
+    myDynamicDetailInfo["cpupercent_i"]  , _ = cpu.Percent(200 * time.Millisecond, true)
+    myDynamicDetailInfo["users"]         , _ = host.Users()
+    myDynamicDetailInfo["netcounters_i"] , _ = net.IOCounters(true)
+    myDynamicDetailInfo["netconnections"], _ = net.Connections("all")
 
-        f, _ := disk.Partitions(true)
-        for _, part := range f { myDynamicDetailInfo[part.Device], _ = disk.Usage(part.Mountpoint) }
-        p, _ := process.Processes()
-        for _, proc := range p {
-                q, _ := proc.Connections()
-                if len(q) == 0 {continue}
-                myDynamicDetailInfo["proc_" + strconv.Itoa(int(proc.Pid))] = proc
-                myDynamicDetailInfo["proc_" + strconv.Itoa(int(proc.Pid)) + "_connections"] = q
-        }
-
+    f, _ := disk.Partitions(true)
+    for _, part := range f { myDynamicDetailInfo[part.Device], _ = disk.Usage(part.Mountpoint) }
+    p, _ := process.Processes()
+    for _, proc := range p {
+            q, _ := proc.Connections()
+            if len(q) == 0 {continue}
+            myDynamicDetailInfo["proc_" + strconv.Itoa(int(proc.Pid))] = proc
+            myDynamicDetailInfo["proc_" + strconv.Itoa(int(proc.Pid)) + "_connections"] = q
+    }
 }
 

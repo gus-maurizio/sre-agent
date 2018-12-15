@@ -4,9 +4,9 @@ import (
 	"github.com/gus-maurizio/sre-agent/types"
 	"encoding/json"
 	"fmt"
-        "github.com/google/uuid"
-        "github.com/prometheus/client_golang/prometheus"
-        log "github.com/sirupsen/logrus"
+	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -18,10 +18,13 @@ func pluginMaker(context types.Context, duration time.Duration, pName string, pl
 }
 
 func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, measure types.FuncMeasure) {
-	traceid := uuid.New().String()
-        pluginLogger := log.WithFields(log.Fields{"pluginname": myName, "context": myContext})
-        pluginLogger.WithFields(log.Fields{"timestamp": float64(time.Now().UnixNano()) / 1e9}).Debug("started")
+	traceid 		:= uuid.New().String()
+	pluginLogger 	:= log.WithFields(log.Fields{"pluginname": myName, "context": myContext})
+	jsonContext, _ 	:= json.Marshal(myContext)
+
+	pluginLogger.WithFields(log.Fields{"timestamp": float64(time.Now().UnixNano()) / 1e9}).Debug("started")
 	defer ticker.Stop()
+	
 	for t := range ticker.C {
 		var myMeasure interface{}
 		measuredata, _, mymeasuretime := measure()
@@ -36,9 +39,9 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 
 		logformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"measure\": %s, \"context\": %s}\n"
 		if PluginMap[myName].MeasureFile {
-			fmt.Fprintf(PluginMap[myName].MeasureHandle, logformat, mymeasuretime, myName, measuredata, myContext)
+			fmt.Fprintf(PluginMap[myName].MeasureHandle, logformat, mymeasuretime, myName, measuredata, jsonContext)
 		} else {
-			fmt.Fprintf(PluginMap[myName].MeasureConn,   logformat, mymeasuretime, myName, measuredata, myContext)
+			fmt.Fprintf(PluginMap[myName].MeasureConn,   logformat, mymeasuretime, myName, measuredata, jsonContext)
 		}
 		
 		err := json.Unmarshal(measuredata, &myMeasure)
