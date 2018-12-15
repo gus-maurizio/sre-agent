@@ -97,19 +97,19 @@ func main() {
 	//--------------------------------------------------------------------------//
 	// Complete the Context values with non-changing information (while we are alive!)
 
-        myContext.AccountId      = "000000000000"
-        myContext.ApplicationId  = config.ApplicationId
-        myContext.ModuleId       = config.ModuleId
-        myContext.VersionId      = config.VersionId
-        myContext.EnvironmentId  = config.EnvironmentId
-        myContext.ComputeId      = "iMac"
-        myContext.RegionId       = "US-EAST"
-        myContext.ZoneId         = "Reston"
-        myContext.RunId          = uuid.New().String()
+    myContext.AccountId      = "000000000000"
+    myContext.ApplicationId  = config.ApplicationId
+    myContext.ModuleId       = config.ModuleId
+    myContext.VersionId      = config.VersionId
+    myContext.EnvironmentId  = config.EnvironmentId
+    myContext.ComputeId      = "iMac"
+    myContext.RegionId       = "US-EAST"
+    myContext.ZoneId         = "Reston"
+    myContext.RunId          = uuid.New().String()
 
 	// Set the context in the logger as default
 	contextLogger := log.WithFields(log.Fields{"name": myName, "context": myContext})
-        contextLogger.WithFields(log.Fields{"staticinfo": myStaticInfo}).Info( "STATIC" )
+    contextLogger.WithFields(log.Fields{"staticinfo": myStaticInfo}).Info( "STATIC" )
 	//--------------------------------------------------------------------------//
 	// time to start a prometheus metrics server
 	// and export any metrics on the /metrics endpoint.
@@ -130,9 +130,9 @@ func main() {
 		fmt.Fprintf(w, "%s\n", jsonAnswer)
 	})
 
-        // we now add a details function!
-        http.HandleFunc(config.DetailHandle, func(w http.ResponseWriter, r *http.Request) {
-                //fmt.Fprintf(w, "Hello, %q\n", html.EscapeString(r.URL.Path))
+    // we now add a details function!
+    http.HandleFunc(config.DetailHandle, func(w http.ResponseWriter, r *http.Request) {
+        //fmt.Fprintf(w, "Hello, %q\n", html.EscapeString(r.URL.Path))
 		switch r.URL.Path {
 		case config.DetailHandle + "all":
 			getDetailInfo()
@@ -141,21 +141,21 @@ func main() {
 			infoAnswer, ierr := json.MarshalIndent(myDynamicDetailInfo, "", "\t") 
 			if ierr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", ierr) }
 			fmt.Fprintf(w, "%s\n", infoAnswer)
-                case config.DetailHandle + "state":
-                        infoAnswer, serr := json.MarshalIndent(PluginMap, "", "\t")
-                        if serr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", serr) }
-                        fmt.Fprintf(w, "%s\n", infoAnswer)
-                case config.DetailHandle + "summary":
-                        getInfo()
-                        myDynamicInfo["timestamp"] = float64(time.Now().UnixNano())/1e9
-                        myDynamicInfo["context"]   = myContext
-                        infoAnswer, ierr := json.MarshalIndent(myDynamicInfo, "", "\t")
-                        if ierr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", ierr) }
-                        fmt.Fprintf(w, "%s\n", infoAnswer)
+        case config.DetailHandle + "state":
+            infoAnswer, serr := json.MarshalIndent(PluginMap, "", "\t")
+            if serr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", serr) }
+            fmt.Fprintf(w, "%s\n", infoAnswer)
+        case config.DetailHandle + "summary":
+            getInfo()
+            myDynamicInfo["timestamp"] = float64(time.Now().UnixNano())/1e9
+            myDynamicInfo["context"]   = myContext
+            infoAnswer, ierr := json.MarshalIndent(myDynamicInfo, "", "\t")
+            if ierr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", ierr) }
+            fmt.Fprintf(w, "%s\n", infoAnswer)
 		default:	
-                        fmt.Fprintf(w, "%s\n", "must specify /all /state or /summary")
+			fmt.Fprintf(w, "%s\n", "must specify /all /state or /summary")
 		}
-        })
+	})
 
 	// Launch the Prometheus server that will answer to the /metrics requests
 	go func() {
