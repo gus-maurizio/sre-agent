@@ -30,15 +30,15 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 		}
 		// update the measure count and state	
 		PluginMap[myName].MeasureCount += 1
-                if PluginMap[myName].Alert { 
-                        PluginMap[myName].AlertCount =+ 1 
-                }
+		if PluginMap[myName].Alert { 
+			PluginMap[myName].AlertCount =+ 1 
+		}
 
-		logformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"measure\": %s}\n"
+		logformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"measure\": %s, \"context\": %s}\n"
 		if PluginMap[myName].MeasureFile {
-			fmt.Fprintf(PluginMap[myName].MeasureHandle, logformat, mymeasuretime, myName, measuredata)
+			fmt.Fprintf(PluginMap[myName].MeasureHandle, logformat, mymeasuretime, myName, measuredata, myContext)
 		} else {
-			fmt.Fprintf(PluginMap[myName].MeasureConn,   logformat, mymeasuretime, myName, measuredata)
+			fmt.Fprintf(PluginMap[myName].MeasureConn,   logformat, mymeasuretime, myName, measuredata, myContext)
 		}
 		
 		err := json.Unmarshal(measuredata, &myMeasure)
@@ -46,11 +46,11 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
         	myModuleContext := &types.ModuleContext{ModuleName: myName, RequestId: uuid.New().String(), TraceId: traceid, RunId: myContext.RunId}
 		// build the ModuleData answer
 		myModuleData    := &types.ModuleData{
-			RunId: myContext.RunId, 
-			Timestamp: float64(t.UnixNano()) / 1e9,
-		 	ModContext: *myModuleContext, 
-			Measure: myMeasure,
-			TimeOverhead: (mymeasuretime - float64(t.UnixNano()) / 1e9) * 1e3,
+			RunId: 			myContext.RunId, 
+			Timestamp: 		float64(t.UnixNano()) / 1e9,
+		 	ModContext: 	*myModuleContext, 
+			Measure:		myMeasure,
+			TimeOverhead: 	(mymeasuretime - float64(t.UnixNano()) / 1e9) * 1e3,
 		} 
 
 		// Good idea to log
