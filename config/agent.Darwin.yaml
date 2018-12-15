@@ -43,13 +43,13 @@ defaultwarnthresh2:    40
 #------------------------------------------------------------------------------#
 # plugin configuration section
 plugins:
-  - pluginname:			plugin_cpu
-    #measuredest:		["udp",":4321"]
-    measuredest:                ["file","/tmp/sre-agent.cpu.measure.log"]
-    alertdest:			["udp",":4322"]
-    warndest:			["udp",":4323"]
-    pluginmodule:		./plugin_cpu/Darwin/plugin_cpu.so
-    plugintimetick:		100ms
+  - pluginname:             plugin_cpu
+    #measuredest:           ["udp",":4321"]
+    measuredest:            ["file","/tmp/sre-agent.cpu.measure.log"]
+    alertdest:              ["udp",":4322"]
+    warndest:               ["udp",":4323"]
+    pluginmodule:           ./plugin_cpu/Darwin/plugin_cpu.so
+    plugintimetick:         200ms
     pluginrollingwindow1:	1m
     pluginrollingwindow2:	5m
     pluginerrorthresh1:    	3
@@ -58,11 +58,32 @@ plugins:
     pluginerrorthresh2:    	10
     pluginwarnthresh2:    	40
     pluginconfig:		'
-                                {"alert": {
-                                            "cpu":              {"low": 2, "design": 60.0, "engineered": 80.0},
-                                            "anycpu":   {"low": 0, "design": 75.0, "engineered": 90.0}
-                                          }
+                        {
+                            "alert": 
+                            {
+                                "cpu":
+                                {
+                                    "low":          2,
+                                    "design":       60.0,
+                                    "engineered":   80.0
+                                },
+                                "anycpu":
+                                {
+                                    "low":          0,
+                                    "design":       75.0,
+                                    "engineered":   90.0
                                 }
+                            },
+
+                            "plugin": 
+                            { 
+                                "config":
+                                {
+                                    "cputimes":     10,
+                                    "saturation":   75.0
+                                }
+                            }
+                        }
 '
 #
 #
