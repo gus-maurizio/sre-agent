@@ -120,9 +120,9 @@ plugins:
     alertdest:                  ["udp",":4326"]
     warndest:                   ["udp",":4327"]
     pluginmodule:               ./plugin_mem/Darwin/plugin_mem.so
-    plugintimetick:             500ms
+    plugintimetick:             5s
     pluginrollingwindow1:       1m
-    pluginrollingwindow2:       1h
+    pluginrollingwindow2:       30m
     pluginerrorthresh1:         5
     pluginwarnthresh1:          50
     #

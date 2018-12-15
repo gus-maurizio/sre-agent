@@ -23,8 +23,8 @@ import (
 
 var overheadMetric = prometheus.NewGaugeVec(
         prometheus.GaugeOpts{
-                Name: "agent_plugin_overhead",
-		Help: "Plugin measure overhead in microseconds",
+                Name: "agent_plugin_overhead_ms",
+		Help: "Plugin measure overhead in milliseconds",
         },
         []string{"plugin"},
 )

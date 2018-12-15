@@ -50,7 +50,7 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 			Timestamp: float64(t.UnixNano()) / 1e9,
 		 	ModContext: *myModuleContext, 
 			Measure: myMeasure,
-			TimeOverhead: (mymeasuretime - float64(t.UnixNano()) / 1e9) * 1e6,
+			TimeOverhead: (mymeasuretime - float64(t.UnixNano()) / 1e9) * 1e3,
 		} 
 
 		// Good idea to log
