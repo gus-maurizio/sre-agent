@@ -1,46 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_PROMETHEUS",
-      "label": "prometheus",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
-    }
-  ],
-  "__requires": [
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "5.3.4"
-    },
-    {
-      "type": "panel",
-      "id": "graph",
-      "name": "Graph",
-      "version": "5.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "heatmap",
-      "name": "Heatmap",
-      "version": "5.0.0"
-    },
-    {
-      "type": "datasource",
-      "id": "prometheus",
-      "name": "Prometheus",
-      "version": "5.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "singlestat",
-      "name": "Singlestat",
-      "version": "5.0.0"
-    }
-  ],
   "annotations": {
     "list": [
       {
@@ -57,7 +15,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": null,
+  "id": 5,
   "links": [],
   "panels": [
     {
@@ -71,10 +29,11 @@
         "rgba(237, 129, 40, 0.89)",
         "#890f02"
       ],
-      "datasource": "${DS_PROMETHEUS}",
-      "format": "µs",
+      "datasource": "Prometheus",
+      "description": "Overhead to get the associated metrics",
+      "format": "ms",
       "gauge": {
-        "maxValue": 1000,
+        "maxValue": 1,
         "minValue": 0,
         "show": true,
         "thresholdLabels": true,
@@ -123,17 +82,17 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "agent_plugin_overhead{plugin=\"baseChannelPlugin\"}",
+          "expr": "agent_plugin_overhead_ms{plugin=\"plugin_cpu\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "thresholds": "280,500,800",
-      "title": "Agent Overhead baseChannelPlugin",
+      "thresholds": "0.5,0.75",
+      "title": "CPU Overhead",
       "type": "singlestat",
-      "valueFontSize": "80%",
+      "valueFontSize": "50%",
       "valueMaps": [
         {
           "op": "=",
@@ -154,10 +113,11 @@
         "rgba(237, 129, 40, 0.89)",
         "#890f02"
       ],
-      "datasource": "${DS_PROMETHEUS}",
-      "format": "µs",
+      "datasource": "Prometheus",
+      "description": "Overhead to get the associated metrics",
+      "format": "ms",
       "gauge": {
-        "maxValue": 1000,
+        "maxValue": 1,
         "minValue": 0,
         "show": true,
         "thresholdLabels": true,
@@ -169,7 +129,7 @@
         "x": 6,
         "y": 0
       },
-      "id": 7,
+      "id": 15,
       "interval": null,
       "links": [],
       "mappingType": 1,
@@ -206,17 +166,17 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "agent_plugin_overhead{plugin=\"baseMutexPlugin\"}",
+          "expr": "agent_plugin_overhead_ms{plugin=\"plugin_mem\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "thresholds": "280,500,800",
-      "title": "Agent Overhead baseMutexPlugin",
+      "thresholds": "0.5,0.75",
+      "title": "MEM Overhead",
       "type": "singlestat",
-      "valueFontSize": "80%",
+      "valueFontSize": "50%",
       "valueMaps": [
         {
           "op": "=",
@@ -231,20 +191,21 @@
       "colorBackground": false,
       "colorPostfix": true,
       "colorPrefix": true,
-      "colorValue": false,
+      "colorValue": true,
       "colors": [
-        "#890f02",
+        "#299c46",
         "rgba(237, 129, 40, 0.89)",
-        "#299c46"
+        "#890f02"
       ],
-      "datasource": "${DS_PROMETHEUS}",
-      "format": "none",
+      "datasource": "Prometheus",
+      "description": "Overhead to get the associated metrics",
+      "format": "ms",
       "gauge": {
-        "maxValue": 0,
+        "maxValue": 50,
         "minValue": 0,
         "show": true,
-        "thresholdLabels": false,
-        "thresholdMarkers": false
+        "thresholdLabels": true,
+        "thresholdMarkers": true
       },
       "gridPos": {
         "h": 8,
@@ -252,7 +213,7 @@
         "x": 12,
         "y": 0
       },
-      "id": 8,
+      "id": 16,
       "interval": null,
       "links": [],
       "mappingType": 1,
@@ -289,100 +250,17 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "agent_plugin_ticks{plugin=\"baseChannelPlugin\"}",
+          "expr": "agent_plugin_overhead_ms{plugin=\"plugin_load\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "thresholds": "",
-      "title": "Plugin Ticks  baseChannelPlugin",
+      "thresholds": "30,40",
+      "title": "OS LOAD Overhead",
       "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
-    },
-    {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorPostfix": true,
-      "colorPrefix": true,
-      "colorValue": false,
-      "colors": [
-        "#890f02",
-        "rgba(237, 129, 40, 0.89)",
-        "#299c46"
-      ],
-      "datasource": "${DS_PROMETHEUS}",
-      "format": "none",
-      "gauge": {
-        "maxValue": 0,
-        "minValue": 0,
-        "show": true,
-        "thresholdLabels": false,
-        "thresholdMarkers": false
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 18,
-        "y": 0
-      },
-      "id": 9,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
-      },
-      "tableColumn": "",
-      "targets": [
-        {
-          "expr": "agent_plugin_ticks{plugin=\"baseMutexPlugin\"}",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "thresholds": "",
-      "title": "Plugin Ticks  baseMutexPlugin",
-      "type": "singlestat",
-      "valueFontSize": "80%",
+      "valueFontSize": "50%",
       "valueMaps": [
         {
           "op": "=",
@@ -405,10 +283,10 @@
         "mode": "spectrum"
       },
       "dataFormat": "timeseries",
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "Prometheus",
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 15,
+        "w": 24,
         "x": 0,
         "y": 8
       },
@@ -421,74 +299,23 @@
       "links": [],
       "targets": [
         {
-          "expr": "agent_plugin_overhead{plugin=\"baseChannelPlugin\"}",
+          "expr": "agent_plugin_overhead_ms{plugin=\"plugin_cpu\"}",
           "format": "heatmap",
           "instant": false,
+          "interval": "",
           "intervalFactor": 1,
+          "legendFormat": "CPU",
           "refId": "A"
-        }
-      ],
-      "title": "Heatmap of Measuring Latency baseChannelPlugin",
-      "tooltip": {
-        "show": true,
-        "showHistogram": true
-      },
-      "type": "heatmap",
-      "xAxis": {
-        "show": true
-      },
-      "xBucketNumber": null,
-      "xBucketSize": null,
-      "yAxis": {
-        "decimals": null,
-        "format": "µs",
-        "logBase": 1,
-        "max": null,
-        "min": null,
-        "show": true,
-        "splitFactor": null
-      },
-      "yBucketBound": "auto",
-      "yBucketNumber": null,
-      "yBucketSize": null
-    },
-    {
-      "cards": {
-        "cardPadding": null,
-        "cardRound": null
-      },
-      "color": {
-        "cardColor": "#b4ff00",
-        "colorScale": "sqrt",
-        "colorScheme": "interpolateSpectral",
-        "exponent": 0.5,
-        "mode": "spectrum"
-      },
-      "dataFormat": "timeseries",
-      "datasource": "${DS_PROMETHEUS}",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
-      "heatmap": {},
-      "highlightCards": true,
-      "id": 14,
-      "legend": {
-        "show": true
-      },
-      "links": [],
-      "targets": [
+        },
         {
-          "expr": "agent_plugin_overhead{plugin=\"baseMutexPlugin\"}",
+          "expr": "agent_plugin_overhead_ms{plugin=\"plugin_mem\"}",
           "format": "heatmap",
-          "instant": false,
           "intervalFactor": 1,
-          "refId": "A"
+          "legendFormat": "MEM",
+          "refId": "B"
         }
       ],
-      "title": "Heatmap of Measuring Latency baseMutexPlugin",
+      "title": "Heatmap of Measuring Latency",
       "tooltip": {
         "show": true,
         "showHistogram": true
@@ -501,7 +328,7 @@
       "xBucketSize": null,
       "yAxis": {
         "decimals": null,
-        "format": "µs",
+        "format": "ms",
         "logBase": 1,
         "max": null,
         "min": null,
@@ -518,7 +345,7 @@
           {
             "evaluator": {
               "params": [
-                200
+                0.5
               ],
               "type": "gt"
             },
@@ -540,6 +367,7 @@
           }
         ],
         "executionErrorState": "alerting",
+        "for": "0m",
         "frequency": "60s",
         "handler": 1,
         "name": "Panel Title alert",
@@ -550,13 +378,13 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "Prometheus",
       "fill": 1,
       "gridPos": {
         "h": 16,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 23
       },
       "id": 11,
       "legend": {
@@ -584,10 +412,19 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "agent_plugin_overhead",
+          "expr": "agent_plugin_overhead_ms{plugin=\"plugin_cpu\"}",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "CPU",
+          "refId": "A"
+        },
+        {
+          "expr": "agent_plugin_overhead_ms{plugin=\"plugin_mem\"}",
           "format": "time_series",
           "intervalFactor": 1,
-          "refId": "A"
+          "legendFormat": "MEM",
+          "refId": "B"
         }
       ],
       "thresholds": [
@@ -596,10 +433,11 @@
           "fill": true,
           "line": true,
           "op": "gt",
-          "value": 200
+          "value": 0.5
         }
       ],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Plugin Measure Overhead",
       "tooltip": {
@@ -617,7 +455,7 @@
       },
       "yaxes": [
         {
-          "format": "µs",
+          "format": "ms",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -643,13 +481,13 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "Prometheus",
       "fill": 1,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 32
+        "y": 39
       },
       "id": 2,
       "legend": {
@@ -683,6 +521,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Agent Ticks",
       "tooltip": {
@@ -726,13 +565,13 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "Prometheus",
       "fill": 1,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 32
+        "y": 39
       },
       "id": 4,
       "legend": {
@@ -766,6 +605,7 @@
       ],
       "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Agent Plugin Bytes Monitored",
       "tooltip": {
@@ -835,5 +675,5 @@
   "timezone": "",
   "title": "SRE Agent Monitoring",
   "uid": "SSsNKLYmk",
-  "version": 4
+  "version": 2
 }
