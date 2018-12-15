@@ -11,7 +11,7 @@ import (
 )
 
 func pluginMaker(context types.Context, duration time.Duration, pName string, plugin types.FPlugin, measure  func() ([]uint8, []uint8, float64)) {
-        log.WithFields(log.Fields{"duration": duration, "name": pName}).Debug("pluginMaker")
+	log.WithFields(log.Fields{"duration": duration, "name": pName}).Debug("pluginMaker")
 	pRuntime := types.PluginRuntime{Ticker: time.NewTicker(duration), PluginName: pName}
 	PluginSlice = append(PluginSlice, pRuntime)
 	go plugin(context, pRuntime.PluginName, pRuntime.Ticker, measure)
@@ -46,7 +46,7 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 		
 		err := json.Unmarshal(measuredata, &myMeasure)
 		if err != nil { log.Fatal("unmarshall err %+v",err) }
-        	myModuleContext := &types.ModuleContext{ModuleName: myName, RequestId: uuid.New().String(), TraceId: traceid, RunId: myContext.RunId}
+    	myModuleContext := &types.ModuleContext{ModuleName: myName, RequestId: uuid.New().String(), TraceId: traceid, RunId: myContext.RunId}
 		// build the ModuleData answer
 		myModuleData    := &types.ModuleData{
 			RunId: 			myContext.RunId, 
@@ -63,6 +63,6 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 		messageMetric.With(prometheus.Labels{"plugin":myName}).Inc()
 		bytesMetric.With(prometheus.Labels{"plugin":myName}).Add(float64(len(measuredata)))
 	}
-        pluginLogger.WithFields(log.Fields{"timestamp": float64(time.Now().UnixNano()) / 1e9}).Info("ended")
+	pluginLogger.WithFields(log.Fields{"timestamp": float64(time.Now().UnixNano()) / 1e9}).Info("ended")
 }
 
