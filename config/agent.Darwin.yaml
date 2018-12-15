@@ -87,6 +87,34 @@ plugins:
 '
 #
 #
+  - pluginname:                 plugin_load
+    measuredest:                ["file","/tmp/sre-agent.load.measure.log"]
+    alertdest:                  ["udp",":4328"]
+    warndest:                   ["udp",":4329"]
+    pluginmodule:               ./plugin_load/Darwin/plugin_load.so
+    plugintimetick:             10s
+    pluginrollingwindow1:       15m
+    pluginrollingwindow2:       1h
+    pluginerrorthresh1:         2
+    pluginwarnthresh1:          10
+    #
+    pluginerrorthresh2:         5
+    pluginwarnthresh2:          50
+    pluginconfig:               '
+				{
+					"alert": 
+					{
+						"load":
+						{
+							"low": 			2,
+							"design": 		60.0,
+							"engineered":	80.0
+						}
+					}
+				}
+'
+#
+#
   - pluginname:                 plugin_mem
     measuredest:                ["file","/tmp/sre-agent.mem.measure.log"]
     alertdest:                  ["udp",":4326"]
