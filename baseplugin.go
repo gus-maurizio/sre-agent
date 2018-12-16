@@ -23,8 +23,19 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 	defer ticker.Stop()
 	
 	for t := range ticker.C {
-		var myMeasure interface{}
+		var myMeasure 	interface{}
+
+		// Just in case there is no Alert function defined, initialize to all is ok
+		MapPlugState[myName].AlertMsg	= ""
+		MapPlugState[myName].AlertLvl	= ""
+		MapPlugState[myName].Alert 		= false
+		MapPlugState[myName].Warning 	= false
+		
+		MapPlugState[myName].AlertError = "n/a"
+
+		// Now do the measurements
 		measuredata, _, mymeasuretime := measure()
+
 		if MapPlugState[myName].AlertFunction {
 			var myerr error
 			MapPlugState[myName].AlertMsg, MapPlugState[myName].AlertLvl, MapPlugState[myName].Alert, myerr = MapPlugState[myName].PluginAlert(measuredata)
@@ -32,8 +43,31 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 		}
 		// update the measure count and state	
 		MapPlugState[myName].MeasureCount += 1
-		if MapPlugState[myName].Alert { 
-			MapPlugState[myName].AlertCount =+ 1 
+		if MapPlugState[myName].Alert {
+			alertformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"alertmsg\": %s, \"alertlvl\": %s, \"error\": %s, \"measure\": %s, \"context\": %s}\n"
+			if MapPlugState[myName].AlertLvl == "warn" {
+				// it is a warning, so clear the alert flag and post to warning
+				MapPlugState[myName].Alert 		= false
+				MapPlugState[myName].Warning 	= true
+				MapPlugState[myName].WarnCount  += 1
+				if MapPlugState[myName].WarnFile {
+					fmt.Fprintf(MapPlugState[myName].WarnHandle, alertformat, mymeasuretime, myName, MapPlugState[myName].AlertMsg, 
+								MapPlugState[myName].AlertLvl, MapPlugState[myName].AlertError, measuredata, jsonContext)
+				} else {
+					fmt.Fprintf(MapPlugState[myName].WarnConn, alertformat, mymeasuretime, myName, MapPlugState[myName].AlertMsg,
+								MapPlugState[myName].AlertLvl, MapPlugState[myName].AlertError, measuredata, jsonContext)
+				}
+			} else {
+				// this is a real alert, so post to alert
+				MapPlugState[myName].AlertCount += 1
+				if MapPlugState[myName].AlertFile {
+					fmt.Fprintf(MapPlugState[myName].AlertHandle, alertformat, mymeasuretime, myName, MapPlugState[myName].AlertMsg, 
+								MapPlugState[myName].AlertLvl, MapPlugState[myName].AlertError, measuredata, jsonContext)
+				} else {
+					fmt.Fprintf(MapPlugState[myName].AlertConn, alertformat, mymeasuretime, myName, MapPlugState[myName].AlertMsg,
+								MapPlugState[myName].AlertLvl, MapPlugState[myName].AlertError, measuredata, jsonContext)
+				}
+			}
 		}
 
 		logformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"measure\": %s, \"context\": %s}\n"

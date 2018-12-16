@@ -3,6 +3,7 @@ package types
 import (
 	"net"
 	"os"
+	"plugin"
 	"time"
 )
 
@@ -110,15 +111,16 @@ type PluginRuntime struct {
 }
 
 type PluginState struct {
+	AlertFunction	bool		`json:"alertfunction"`
 	AlertMsg		string		`json:"alertmsg"`
 	AlertLvl		string		`json:"alertlvl"`
 	AlertError		string		`json:"alerterror"`
-	AlertFunction	bool		`json:"alertfunction"`
 
 	MeasureCount	int			`json:"measurecount"`
 	MeasureFile 	bool		`json:"measurefile"`
 	MeasureHandle	*os.File 	`json:"-"`
 	MeasureConn		net.Conn 	`json:"-"`
+
 	Alert			bool		`json:"alert"`
 	AlertCount		int        	`json:"alertcount"`
 	AlertFile       bool		`json:"alertfile"`
@@ -137,6 +139,9 @@ type PluginState struct {
 	W1Warns			int 		`json:"w1warns"`
 	W2Alerts		int 		`json:"w2alerts"`
 	W2Warns			int 		`json:"w2warns"`
+
+	PConfig 		plugin.Symbol	`json:"pluginconfig"`
+	PData 			plugin.Symbol	`json:"plugindata"`
 
 	PluginAlert	func([]byte) (string, string, bool, error)	`json:"-"`
 }

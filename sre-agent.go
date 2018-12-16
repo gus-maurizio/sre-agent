@@ -207,6 +207,13 @@ func main() {
 			contextLogger.Info("There is an Alert defined")
         }
 
+
+        // Plugin Should export PluginConfig and PluginData
+        ptrConfig, pcerr := plug.Lookup("PluginConfig")
+        if pcerr != nil { ptrConfig = nil }
+        ptrData, pcerr   := plug.Lookup("PluginData")
+        if pcerr != nil { ptrData = nil }
+
 		// initialize the state machine
 		var mConn,nConn,oConn net.Conn
 		var fConn,gConn,hConn *os.File
@@ -286,6 +293,9 @@ func main() {
             W1Warns:		0,
             W2Alerts:		0,
             W2Warns:		0,
+
+            PConfig:		ptrConfig,
+            PData:			ptrData,
 
 			PluginAlert:	pluginAlert.(func([]byte) (string, string, bool, error) ),
        	}

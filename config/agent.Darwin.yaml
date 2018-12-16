@@ -46,8 +46,10 @@ plugins:
   - pluginname:             plugin_cpu
     #measuredest:           ["udp",":4321"]
     measuredest:            ["file","/tmp/sre-agent.cpu.measure.log"]
-    alertdest:              ["udp",":4322"]
-    warndest:               ["udp",":4323"]
+    alertdest:              ["file","/tmp/sre-agent.cpu.alert.log"]
+    warndest:               ["file","/tmp/sre-agent.cpu.warn.log"]
+    #alertdest:              ["udp",":4322"]
+    #warndest:               ["udp",":4323"]
     pluginmodule:           ./plugin_cpu/Darwin/plugin_cpu.so
     plugintimetick:         200ms
     pluginrollingwindow1:	10m
@@ -64,13 +66,13 @@ plugins:
                                 "cpu":
                                 {
                                     "low":          2,
-                                    "design":       60.0,
+                                    "design":       40.0,
                                     "engineered":   80.0
                                 },
                                 "anycpu":
                                 {
                                     "low":          0,
-                                    "design":       75.0,
+                                    "design":       45.0,
                                     "engineered":   90.0
                                 }
                             },
