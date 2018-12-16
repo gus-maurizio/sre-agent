@@ -188,29 +188,24 @@ func main() {
 		}
 		// Identify the main needed function exported as symbol PluginMeasure
 		pluginMeasure, perr := plug.Lookup("PluginMeasure")
-                if perr != nil {
-                        contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": perr}).Fatal("Error loading measure function")
+        if perr != nil {
+			contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": perr}).Fatal("Error loading measure function")
 			continue
-                }
+        }
 		// It is possible that the plugin needs a ONE TIME initialization via function exported as symbol InitPlugin
 		// and then pass the config parameter pluginconfig, a string that usually is a json element
-                pluginInit, ierr := plug.Lookup("InitPlugin")
-                if ierr == nil {
-                        contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to initialize plugin")
+        pluginInit, ierr := plug.Lookup("InitPlugin")
+        if ierr == nil {
+			contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to initialize plugin")
 			pluginInit.(func(string) ())(config.Plugins[i].PluginConfig)
-                }
+        }
 
-                // It is possible that the plugin needs to check for alerts via function exported as symbol PluginAlert
-                // and then pass the measurement made []byte
-                pluginAlert, aerr := plug.Lookup("PluginAlert")
-                if aerr == nil {
-                        contextLogger.Info("There is an Alert defined")
-                }
-
-		// Compute the TICK between measurements
-		if config.Plugins[i].PluginTick == "" { config.Plugins[i].PluginTick = config.DefaultTick }
-		plugintick, err := time.ParseDuration(config.Plugins[i].PluginTick)
-		if err != nil { plugintick, _ = time.ParseDuration(config.DefaultTick) }
+        // It is possible that the plugin needs to check for alerts via function exported as symbol PluginAlert
+        // and then pass the measurement made []byte
+        pluginAlert, aerr := plug.Lookup("PluginAlert")
+        if aerr == nil {
+			contextLogger.Info("There is an Alert defined")
+        }
 
 		// initialize the state machine
 		var mConn,nConn,oConn net.Conn
@@ -226,30 +221,47 @@ func main() {
 		} else {
 			mConn, err 	= net.Dial(config.Plugins[i].MeasureDest[0], config.Plugins[i].MeasureDest[1])	
 		}
-                if err != nil {
-                        contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing measurement function destination")
-                        os.Exit(16)
-                }
-                //--- Alert Dest
-                if config.Plugins[i].AlertDest[0] == "file" {
-                        gConn, err      = os.OpenFile(config.Plugins[i].AlertDest[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-                } else {
-                        nConn, err      = net.Dial(config.Plugins[i].AlertDest[0], config.Plugins[i].AlertDest[1])
-                }
-                if err != nil {
-                        contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing alert function destination")
-                        os.Exit(16)
-                }
-                //--- Warning Dest
-                if config.Plugins[i].WarnDest[0] == "file" {
-                        hConn, err      = os.OpenFile(config.Plugins[i].WarnDest[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-                } else {
-                        oConn, err      = net.Dial(config.Plugins[i].WarnDest[0], config.Plugins[i].WarnDest[1])
-                }
-                if err != nil {
-                        contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing warning function destination")
-                        os.Exit(16)
-  	              }	
+        if err != nil {
+                contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing measurement function destination")
+                os.Exit(16)
+        }
+        //--- Alert Dest
+        if config.Plugins[i].AlertDest[0] == "file" {
+                gConn, err      = os.OpenFile(config.Plugins[i].AlertDest[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+        } else {
+                nConn, err      = net.Dial(config.Plugins[i].AlertDest[0], config.Plugins[i].AlertDest[1])
+        }
+        if err != nil {
+                contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing alert function destination")
+                os.Exit(16)
+        }
+        //--- Warning Dest
+        if config.Plugins[i].WarnDest[0] == "file" {
+                hConn, err      = os.OpenFile(config.Plugins[i].WarnDest[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+        } else {
+                oConn, err      = net.Dial(config.Plugins[i].WarnDest[0], config.Plugins[i].WarnDest[1])
+        }
+        if err != nil {
+                contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing warning function destination")
+                os.Exit(16)
+		}	
+
+		// Compute the TICK between measurements
+		if config.Plugins[i].PluginTick == "" { config.Plugins[i].PluginTick = config.DefaultTick }
+		plugintick, err := time.ParseDuration(config.Plugins[i].PluginTick)
+		if err != nil { plugintick, _ = time.ParseDuration(config.DefaultTick) }
+
+		//--- Ensure rolling windows are defined or get them to be the default ones
+		var wDuration 			time.Duration
+		var w1Count, w2Count 	int64
+
+		if config.Plugins[i].PluginRollW1 == "" { config.Plugins[i].PluginRollW1 = config.DefaultRollW1 }
+		wDuration, _ 	= time.ParseDuration(config.Plugins[i].PluginRollW1)
+		w1Count			= wDuration / plugintick
+
+		if config.Plugins[i].PluginRollW2 == "" { config.Plugins[i].PluginRollW2 = config.DefaultRollW2 }
+		wDuration, _ 	= time.ParseDuration(config.Plugins[i].PluginRollW2)
+		w2Count			= wDuration / plugintick
 
 		MapPlugState[config.Plugins[i].PluginName]	= &types.PluginState{	
 			Alert:			false,
@@ -267,6 +279,9 @@ func main() {
             WarnFile:       config.Plugins[i].WarnDest[0] == "file",
             WarnConn:       oConn,
             WarnHandle:     hConn,
+
+            RollW1count: 	w1Count,
+            RollW2count: 	w2Count,
 
 			PluginAlert:	pluginAlert.(func([]byte) (string, string, bool, error) ),
        	}

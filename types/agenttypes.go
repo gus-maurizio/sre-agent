@@ -131,6 +131,9 @@ type PluginState struct {
     WarnHandle      *os.File	`json:"-"`
 	WarnConn		net.Conn 	`json:"-"`
 
+	RollW1count		int64		`json:"rollw1"`
+	RollW2count		int64		`json:"rollw2"`
+
 	PluginAlert	func([]byte) (string, string, bool, error)	`json:"-"`
 }
 
