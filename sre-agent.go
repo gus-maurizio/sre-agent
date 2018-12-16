@@ -47,16 +47,25 @@ import (
 	"strconv"
 )
 
-var PluginSlice []types.PluginRuntime
-var PluginMap   map[string]*types.PluginState
+var MapRuntime  	map[string]*types.PluginRuntime
+var MapPlugState   	map[string]*types.PluginState
 
 var p = message.NewPrinter(language.English)
 
 func cleanup() {
 	log.Info("Program Cleanup Started")
-	for pluginIdx, PluginPtr := range PluginSlice {
-		log.Debug(  p.Sprintf("Stopping plugin %3d %20s ticker %#v\n", pluginIdx, PluginPtr.PluginName, PluginPtr.Ticker) )
+	jsonContext, _ 	:= json.Marshal(myContext)
+	ts := float64(time.Now().UnixNano())/1e9
+	for pluginIdx, PluginPtr := range(MapRuntime) { 
+		log.Info(  p.Sprintf("Stopping plugin %20s %20s ticker %#v\n", pluginIdx, PluginPtr.PluginName, PluginPtr.Ticker) )
 		PluginPtr.Ticker.Stop()
+		logformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"measure\": %s, \"context\": %s}\n"
+		measuredata := "plugin stopped"
+		if MapPlugState[pluginIdx].MeasureFile {
+			fmt.Fprintf(MapPlugState[pluginIdx].MeasureHandle, logformat, ts, pluginIdx, measuredata, jsonContext)
+		} else {
+			fmt.Fprintf(MapPlugState[pluginIdx].MeasureConn,   logformat, ts, pluginIdx, measuredata, jsonContext)
+		}
 	}
 }
 
@@ -141,8 +150,8 @@ func main() {
 			infoAnswer, ierr := json.MarshalIndent(myDynamicDetailInfo, "", "\t") 
 			if ierr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", ierr) }
 			fmt.Fprintf(w, "%s\n", infoAnswer)
-        case config.DetailHandle + "state":
-            infoAnswer, serr := json.MarshalIndent(PluginMap, "", "\t")
+        case config.DetailHandle + "state":	
+            infoAnswer, serr := json.MarshalIndent(MapPlugState, "", "\t")
             if serr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", serr) }
             fmt.Fprintf(w, "%s\n", infoAnswer)
         case config.DetailHandle + "summary":
@@ -165,7 +174,8 @@ func main() {
 
 	//--------------------------------------------------------------------------//
 	// Create the state machine
-	PluginMap = make(map[string]*types.PluginState,len(config.Plugins))
+	MapPlugState = make(map[string]*types.PluginState, len(config.Plugins))
+	MapRuntime   = make(map[string]*types.PluginRuntime,len(config.Plugins))
 
 	// Scan the configuration to load all the plugins
 	for i := range config.Plugins {
@@ -239,30 +249,35 @@ func main() {
                 if err != nil {
                         contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing warning function destination")
                         os.Exit(16)
-                }
+  	              }	
 
-		PluginMap[config.Plugins[i].PluginName]	= &types.PluginState{	Alert:		false,
-										AlertFunction:	aerr == nil,
-										MeasureCount:	0,
-										MeasureFile:    config.Plugins[i].MeasureDest[0] == "file",
-										MeasureConn:	mConn,
-										MeasureHandle:	fConn,
-										AlertCount:		0,
-                                        AlertFile:    	config.Plugins[i].AlertDest[0] == "file",
-                                        AlertConn:    	nConn,
-                                        AlertHandle:  	gConn,
+		MapPlugState[config.Plugins[i].PluginName]	= &types.PluginState{	
+			Alert:			false,
+			AlertFunction:	aerr == nil,
+			MeasureCount:	0,
+			MeasureFile:    config.Plugins[i].MeasureDest[0] == "file",
+			MeasureConn:	mConn,
+			MeasureHandle:	fConn,
+			AlertCount:		0,
+            AlertFile:    	config.Plugins[i].AlertDest[0] == "file",
+            AlertConn:    	nConn,
+            AlertHandle:  	gConn,
 
-                                        WarnCount:      0,
-                                        WarnFile:       config.Plugins[i].WarnDest[0] == "file",
-                                        WarnConn:       oConn,
-                                        WarnHandle:     hConn,
+            WarnCount:      0,
+            WarnFile:       config.Plugins[i].WarnDest[0] == "file",
+            WarnConn:       oConn,
+            WarnHandle:     hConn,
 
-										PluginAlert:	pluginAlert.(func([]byte) (string, string, bool, error) ),
-								       	}
-
+			PluginAlert:	pluginAlert.(func([]byte) (string, string, bool, error) ),
+       	}
+		MapRuntime[config.Plugins[i].PluginName] = &types.PluginRuntime{
+			Ticker: 		time.NewTicker(plugintick), 
+			PluginName: 	config.Plugins[i].PluginName,
+			PState:			MapPlugState[config.Plugins[i].PluginName],
+		}
 		// Now we have all the elements to call the pluginMaker and pass the parameters
-                contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to create the plugin")
-		pluginMaker(myContext, plugintick, config.Plugins[i].PluginName, basePlugin, pluginMeasure.(func() ([]uint8, []uint8, float64)))
+		contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to create the plugin")
+		pluginMaker(myContext, MapRuntime[config.Plugins[i].PluginName].Ticker, config.Plugins[i].PluginName, basePlugin, pluginMeasure.(func() ([]uint8, []uint8, float64)))
 	}
 
 	//--------------------------------------------------------------------------//

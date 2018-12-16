@@ -26,7 +26,7 @@ type Context struct {
 	ComputeId     string   `json:"computeid"`
 	RegionId      string   `json:"regionid"`
 	ZoneId        string   `json:"zoneid"`
-        RunId         string   `json:"runid"`
+    RunId         string   `json:"runid"`
 }
 
 // Each Plugin will keep the RunId from the agent.
@@ -50,87 +50,86 @@ type ModuleContext struct {
 // will return a json structure. 
 
 type ModuleData struct {
-	RunId		string   	`json:"runid"`
-	Timestamp	float64  	`json:"timestamp"`
+	RunId		string   		`json:"runid"`
+	Timestamp	float64  		`json:"timestamp"`
 	ModContext	ModuleContext	`json:"modulecontext"`
-	Measure		interface{}	`json:"measure"`
+	Measure		interface{}		`json:"measure"`
 	TimeOverhead	float64		`json:"overhead"`
 }
 
 // This is what gets loaded from the -f .yaml configuration file
 type Config struct {
-        ApplicationId    string `yaml:"applicationid"`
-        ModuleId         string `yaml:"moduleid"`
-        VersionId        string `yaml:"versionid"`
-        EnvironmentId    string `yaml:"environmentid"`
+    ApplicationId    string 	`yaml:"applicationid"`
+    ModuleId         string 	`yaml:"moduleid"`
+    VersionId        string 	`yaml:"versionid"`
+    EnvironmentId    string 	`yaml:"environmentid"`
 
-        LogFormat        string `yaml:"logformat"`
-        LogDest          string `yaml:"logdest"`
-	PrettyPrint	 bool	`yaml:"prettyprint"`
-	DisableTimestamp bool	`yaml:"disabletimestamp"`
+    LogFormat        string 	`yaml:"logformat"`
+    LogDest          string 	`yaml:"logdest"`
+	PrettyPrint	 bool			`yaml:"prettyprint"`
+	DisableTimestamp bool		`yaml:"disabletimestamp"`
 
-	PrometheusPort   int    `yaml:"prometheusport"`
-	MetricHandle     string `yaml:"metrichandle"`
-	DetailHandle     string `yaml:"detailhandle"`
-	HealthHandle     string `yaml:"healthhandle"`
+	PrometheusPort   int    	`yaml:"prometheusport"`
+	MetricHandle     string 	`yaml:"metrichandle"`
+	DetailHandle     string 	`yaml:"detailhandle"`
+	HealthHandle     string 	`yaml:"healthhandle"`
 
-        DefaultTick      string `yaml:"defaulttimetick"`
-        DefMeasureDest   []string `yaml:"defaultmeasuredest"`
-        DefAlertDest     []string `yaml:"defaultalertdest"`
-        DefWarnDest      []string `yaml:"defaultwarndest"`
+    DefaultTick      string 	`yaml:"defaulttimetick"`
+    DefMeasureDest   []string 	`yaml:"defaultmeasuredest"`
+    DefAlertDest     []string 	`yaml:"defaultalertdest"`
+    DefWarnDest      []string 	`yaml:"defaultwarndest"`
 
-	DefaultRollW1	string `yaml:"defaultrollingwindow1"`
-	DefaultRollW2	string `yaml:"defaultrollingwindow2"`
+	DefaultRollW1	string 		`yaml:"defaultrollingwindow1"`
+	DefaultRollW2	string 		`yaml:"defaultrollingwindow2"`
 
-	DefaultErrT1	int	`yaml:"defaulterrorthresh1"`
-	DefaultWarnT1	int	`yaml:"defaultwarnthresh1"`
-        DefaultErrT2    int     `yaml:"defaulterrorthresh2"`
-        DefaultWarnT2   int     `yaml:"defaultwarnthresh12`
-
+	DefaultErrT1	int			`yaml:"defaulterrorthresh1"`
+	DefaultWarnT1	int			`yaml:"defaultwarnthresh1"`
+    DefaultErrT2    int     	`yaml:"defaulterrorthresh2"`
+    DefaultWarnT2   int     	`yaml:"defaultwarnthresh12`
 	Plugins []struct {
-		PluginName   string `yaml:"pluginname"`
-		PluginModule string `yaml:"pluginmodule"`
-		MeasureDest  []string `yaml:"measuredest"`
-		AlertDest    []string `yaml:"alertdest"`
-		WarnDest     []string `yaml:"warndest"`
-		PluginTick   string `yaml:"plugintimetick"`
-		PluginRollW1 string `yaml:"plugintrollingwindow1"`
-		PluginRollW2 string `yaml:"plugintrollingwindow2"`
-		PluginConfig string `yaml:"pluginconfig"`
-        	PluginErrT1  int    `yaml:"pluginerrorthresh1"`
-        	PluginWarnT1 int    `yaml:"pluginwarnthresh1"`
-                PluginErrT2  int    `yaml:"pluginerrorthresh2"`
-                PluginWarnT2 int    `yaml:"pluginwarnthresh2"`
+		PluginName   string 	`yaml:"pluginname"`
+		PluginModule string 	`yaml:"pluginmodule"`
+		MeasureDest  []string 	`yaml:"measuredest"`
+		AlertDest    []string 	`yaml:"alertdest"`
+		WarnDest     []string 	`yaml:"warndest"`
+		PluginTick   string 	`yaml:"plugintimetick"`
+		PluginRollW1 string 	`yaml:"plugintrollingwindow1"`
+		PluginRollW2 string 	`yaml:"plugintrollingwindow2"`
+    	PluginErrT1  int    	`yaml:"pluginerrorthresh1"`
+    	PluginWarnT1 int    	`yaml:"pluginwarnthresh1"`
+        PluginErrT2  int    	`yaml:"pluginerrorthresh2"`
+        PluginWarnT2 int    	`yaml:"pluginwarnthresh2"`
+		PluginConfig string 	`yaml:"pluginconfig"`
 	}
 }
 
 type PluginRuntime struct {
-	Ticker     *time.Ticker
-	PluginName string
+	Ticker     		*time.Ticker
+	PluginName 		string
+	PState 			*PluginState
 }
 
 type PluginState struct {
-	AlertMsg	string		`json:"alertmsg"`
-	AlertLvl	string		`json:"alertlvl"`
-	AlertError	error		`json:"alerterror"`
+	AlertMsg		string		`json:"alertmsg"`
+	AlertLvl		string		`json:"alertlvl"`
+	AlertError		error		`json:"alerterror"`
 	AlertFunction	bool		`json:"alertfunction"`
 
-	MeasureCount	int		`json:"measurecount"`
-	MeasureFile	bool		`json:"measurefile"`
+	MeasureCount	int			`json:"measurecount"`
+	MeasureFile 	bool		`json:"measurefile"`
 	MeasureHandle	*os.File 	`json:"-"`
-	MeasureConn	net.Conn 	`json:"-"`
+	MeasureConn		net.Conn 	`json:"-"`
+	Alert			bool		`json:"alert"`
+	AlertCount		int        	`json:"alertcount"`
+	AlertFile       bool		`json:"alertfile"`
+	AlertHandle     *os.File	`json:"-"`
+	AlertConn		net.Conn 	`json:"-"`
 
-	Alert		bool		`json:"alert"`
-	AlertCount	int        	`json:"alertcount"`
-        AlertFile       bool            `json:"alertfile"`
-        AlertHandle     *os.File        `json:"-"`
-	AlertConn	net.Conn 	`json:"-"`
-
-        Warning         bool            `json:"warning"`
-        WarnCount       int             `json:"warncount"`
-        WarnFile        bool            `json:"warnfile"`
-        WarnHandle      *os.File        `json:"-"`
-	WarnConn	net.Conn 	`json:"-"`
+    Warning         bool		`json:"warning"`
+    WarnCount       int			`json:"warncount"`
+    WarnFile        bool 		`json:"warnfile"`
+    WarnHandle      *os.File	`json:"-"`
+	WarnConn		net.Conn 	`json:"-"`
 
 	PluginAlert	func([]byte) (string, string, bool, error)	`json:"-"`
 }

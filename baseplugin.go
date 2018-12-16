@@ -10,11 +10,8 @@ import (
 	"time"
 )
 
-func pluginMaker(context types.Context, duration time.Duration, pName string, plugin types.FPlugin, measure  func() ([]uint8, []uint8, float64)) {
-	log.WithFields(log.Fields{"duration": duration, "name": pName}).Debug("pluginMaker")
-	pRuntime := types.PluginRuntime{Ticker: time.NewTicker(duration), PluginName: pName}
-	PluginSlice = append(PluginSlice, pRuntime)
-	go plugin(context, pRuntime.PluginName, pRuntime.Ticker, measure)
+func pluginMaker(context types.Context, tick *time.Ticker, pName string, plugin types.FPlugin, measure  func() ([]uint8, []uint8, float64)) {
+	go plugin(context, pName, tick, measure)
 }
 
 func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, measure types.FuncMeasure) {
@@ -28,20 +25,20 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 	for t := range ticker.C {
 		var myMeasure interface{}
 		measuredata, _, mymeasuretime := measure()
-		if PluginMap[myName].AlertFunction {
-			PluginMap[myName].AlertMsg, PluginMap[myName].AlertLvl, PluginMap[myName].Alert, PluginMap[myName].AlertError = PluginMap[myName].PluginAlert(measuredata)
+		if MapPlugState[myName].AlertFunction {
+			MapPlugState[myName].AlertMsg, MapPlugState[myName].AlertLvl, MapPlugState[myName].Alert, MapPlugState[myName].AlertError = MapPlugState[myName].PluginAlert(measuredata)
 		}
 		// update the measure count and state	
-		PluginMap[myName].MeasureCount += 1
-		if PluginMap[myName].Alert { 
-			PluginMap[myName].AlertCount =+ 1 
+		MapPlugState[myName].MeasureCount += 1
+		if MapPlugState[myName].Alert { 
+			MapPlugState[myName].AlertCount =+ 1 
 		}
 
 		logformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"measure\": %s, \"context\": %s}\n"
-		if PluginMap[myName].MeasureFile {
-			fmt.Fprintf(PluginMap[myName].MeasureHandle, logformat, mymeasuretime, myName, measuredata, jsonContext)
+		if MapPlugState[myName].MeasureFile {
+			fmt.Fprintf(MapPlugState[myName].MeasureHandle, logformat, mymeasuretime, myName, measuredata, jsonContext)
 		} else {
-			fmt.Fprintf(PluginMap[myName].MeasureConn,   logformat, mymeasuretime, myName, measuredata, jsonContext)
+			fmt.Fprintf(MapPlugState[myName].MeasureConn,   logformat, mymeasuretime, myName, measuredata, jsonContext)
 		}
 		
 		err := json.Unmarshal(measuredata, &myMeasure)
