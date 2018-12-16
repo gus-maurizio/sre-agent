@@ -1,29 +1,29 @@
 # config of runtime
-applicationid:          ASVMYNAME
-moduleid:               go.agent
-versionid:              1.0.0.a
-environmentid:          Production
+applicationid:              ASVMYNAME
+moduleid:                   go.agent
+versionid:                  1.0.0.a
+environmentid:              Production
 #------------------------------------------------------------------------------#
 # log preferences
-logformat:              JSON
-#logdest:               STDERR
-prettyprint:            true
-disabletimestamp:       false
+logformat:                  JSON
+#logdest:                   STDERR
+prettyprint:                true
+disabletimestamp:           false
 #------------------------------------------------------------------------------#
 # Prometheus metric expose
-prometheusport:         9000
-metrichandle:           /metrics
-healthhandle:           /health
-detailhandle:           /detail/
+prometheusport:             9000
+metrichandle:               /metrics
+healthhandle:               /health
+detailhandle:               /detail/
 #------------------------------------------------------------------------------#
 # defaults for Plugins 
-defaulttimetick:        500ms
-defaultmeasuredest:	    ["file","/tmp/sre-agent.measure.log"]
-defaultalertdest:       ["file","/tmp/sre-agent.alert.log"]
-defaultwarndest:        ["file","/tmp/sre-agent.warn.log"]
+defaultmeasuredest:	        ["file","/tmp/sre-agent.measure.log"]
+defaultalertdest:           ["file","/tmp/sre-agent.alert.log"]
+defaultwarndest:            ["file","/tmp/sre-agent.warn.log"]
 #--- two rolling windows are kept to calculate error and warning densities
-defaultrollingwindow1:	 15m
-defaultrollingwindow2:	 1h
+defaulttimetick:            500ms
+defaultrollingwindow1:      15m
+defaultrollingwindow2:      1h
 #--- error and warning default thresholds
 #---   the idea is that errors and warnings can be ephemeral
 #---   and we need to get a few # in each window to call it an emegency
@@ -32,7 +32,7 @@ defaultrollingwindow2:	 1h
 #---      # of ticks in Roll W1: 15m/500ms = 1800
 #---      # of ticks in Roll W2: 1h/500ms  = 7200
 #---      when 03 errors   are detected in 1800 ticks, an ALERT    will be sent
-#---      when 40 warnings are detected in 1800 ticks, a  WARNINGn will be sent
+#---      when 40 warnings are detected in 1800 ticks, a  WARNING  will be sent
 #---      same concept applies to Rolling Window 2
 defaulterrorthresh1:        3
 defaultwarnthresh1:         40
@@ -50,8 +50,8 @@ plugins:
     warndest:               ["udp",":4323"]
     pluginmodule:           ./plugin_cpu/Darwin/plugin_cpu.so
     plugintimetick:         200ms
-    pluginrollingwindow1:	1m
-    pluginrollingwindow2:	5m
+    pluginrollingwindow1:	10m
+    pluginrollingwindow2:	1h
     pluginerrorthresh1:    	3
     pluginwarnthresh1:     	40
     #
@@ -93,8 +93,8 @@ plugins:
     warndest:                   ["udp",":4329"]
     pluginmodule:               ./plugin_load/Darwin/plugin_load.so
     plugintimetick:             10s
-    pluginrollingwindow1:       15m
-    pluginrollingwindow2:       1h
+    pluginrollingwindow1:       30m
+    pluginrollingwindow2:       4h
     pluginerrorthresh1:         2
     pluginwarnthresh1:          10
     #
@@ -120,9 +120,9 @@ plugins:
     alertdest:                  ["udp",":4326"]
     warndest:                   ["udp",":4327"]
     pluginmodule:               ./plugin_mem/Darwin/plugin_mem.so
-    plugintimetick:             5s
-    pluginrollingwindow1:       1m
-    pluginrollingwindow2:       30m
+    plugintimetick:             20s
+    pluginrollingwindow1:       10m
+    pluginrollingwindow2:       2h
     pluginerrorthresh1:         5
     pluginwarnthresh1:          50
     #

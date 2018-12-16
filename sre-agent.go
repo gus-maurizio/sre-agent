@@ -253,15 +253,15 @@ func main() {
 
 		//--- Ensure rolling windows are defined or get them to be the default ones
 		var wDuration 			time.Duration
-		var w1Count, w2Count 	int64
+		var w1Count, w2Count 	int
 
 		if config.Plugins[i].PluginRollW1 == "" { config.Plugins[i].PluginRollW1 = config.DefaultRollW1 }
 		wDuration, _ 	= time.ParseDuration(config.Plugins[i].PluginRollW1)
-		w1Count			= wDuration / plugintick
+		w1Count			= int(wDuration / plugintick)
 
 		if config.Plugins[i].PluginRollW2 == "" { config.Plugins[i].PluginRollW2 = config.DefaultRollW2 }
 		wDuration, _ 	= time.ParseDuration(config.Plugins[i].PluginRollW2)
-		w2Count			= wDuration / plugintick
+		w2Count			= int(wDuration / plugintick)
 
 		MapPlugState[config.Plugins[i].PluginName]	= &types.PluginState{	
 			Alert:			false,
@@ -282,6 +282,10 @@ func main() {
 
             RollW1count: 	w1Count,
             RollW2count: 	w2Count,
+            W1Alerts:		0,
+            W1Warns:		0,
+            W2Alerts:		0,
+            W2Warns:		0,
 
 			PluginAlert:	pluginAlert.(func([]byte) (string, string, bool, error) ),
        	}

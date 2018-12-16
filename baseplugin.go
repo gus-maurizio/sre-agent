@@ -26,7 +26,9 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 		var myMeasure interface{}
 		measuredata, _, mymeasuretime := measure()
 		if MapPlugState[myName].AlertFunction {
-			MapPlugState[myName].AlertMsg, MapPlugState[myName].AlertLvl, MapPlugState[myName].Alert, MapPlugState[myName].AlertError = MapPlugState[myName].PluginAlert(measuredata)
+			var myerr error
+			MapPlugState[myName].AlertMsg, MapPlugState[myName].AlertLvl, MapPlugState[myName].Alert, myerr = MapPlugState[myName].PluginAlert(measuredata)
+			MapPlugState[myName].AlertError = myerr.Error()
 		}
 		// update the measure count and state	
 		MapPlugState[myName].MeasureCount += 1
