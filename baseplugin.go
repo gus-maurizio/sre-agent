@@ -41,8 +41,10 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 			MapPlugState[myName].AlertMsg, MapPlugState[myName].AlertLvl, MapPlugState[myName].Alert, myerr = MapPlugState[myName].PluginAlert(measuredata)
 			MapPlugState[myName].AlertError = myerr.Error()
 		}
-		// update the measure count and state	
+		// update the measure count and state, make sure it does not go beyond limits
 		MapPlugState[myName].MeasureCount += 1
+		if MapPlugState[myName].MeasureCount == 2147483647 {MapPlugState[myName].MeasureCount = 0}
+		// Did we get an alert
 		if MapPlugState[myName].Alert {
 			alertformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"alertmsg\": %s, \"alertlvl\": %s, \"error\": %s, \"measure\": %s, \"context\": %s}\n"
 			if MapPlugState[myName].AlertLvl == "warn" {
@@ -69,7 +71,7 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 				}
 			}
 		}
-
+		// Time to send to measure destination
 		logformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"measure\": %s, \"context\": %s}\n"
 		if MapPlugState[myName].MeasureFile {
 			fmt.Fprintf(MapPlugState[myName].MeasureHandle, logformat, mymeasuretime, myName, measuredata, jsonContext)

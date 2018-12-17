@@ -20,6 +20,7 @@ detailhandle:               /detail/
 defaultmeasuredest:	        ["file","/tmp/sre-agent.measure.log"]
 defaultalertdest:           ["file","/tmp/sre-agent.alert.log"]
 defaultwarndest:            ["file","/tmp/sre-agent.warn.log"]
+defaultpagedest:            ["file","/tmp/sre-agent.page.log"]
 #--- two rolling windows are kept to calculate error and warning densities
 defaulttimetick:            500ms
 defaultrollingwindow1:      15m
@@ -48,8 +49,8 @@ plugins:
     measuredest:            ["file","/tmp/sre-agent.cpu.measure.log"]
     alertdest:              ["file","/tmp/sre-agent.cpu.alert.log"]
     warndest:               ["file","/tmp/sre-agent.cpu.warn.log"]
-    #alertdest:              ["udp",":4322"]
-    #warndest:               ["udp",":4323"]
+    #alertdest:              ["udp","localhost:4322"]
+    #warndest:               ["udp","localhost:4323"]
     pluginmodule:           ./plugin_cpu/Darwin/plugin_cpu.so
     plugintimetick:         200ms
     pluginrollingwindow1:	10m
@@ -72,7 +73,7 @@ plugins:
                                 "anycpu":
                                 {
                                     "low":          0,
-                                    "design":       45.0,
+                                    "design":       55.0,
                                     "engineered":   90.0
                                 }
                             },

@@ -215,14 +215,16 @@ func main() {
         if pcerr != nil { ptrData = nil }
 
 		// initialize the state machine
-		var mConn,nConn,oConn net.Conn
-		var fConn,gConn,hConn *os.File
+		var mConn,nConn,oConn,pConn net.Conn
+		var fConn,gConn,hConn,iConn *os.File
 		//--- Ensure Dests are defined at plugin level or get them to be the default ones
 		if len(config.Plugins[i].MeasureDest) != 2 { config.Plugins[i].MeasureDest = config.DefMeasureDest }
 		if len(config.Plugins[i].AlertDest)   != 2 { config.Plugins[i].AlertDest   = config.DefAlertDest }
 		if len(config.Plugins[i].WarnDest)    != 2 { config.Plugins[i].WarnDest    = config.DefWarnDest }
+		if len(config.Plugins[i].PageDest)    != 2 { config.Plugins[i].PageDest    = config.DefPageDest }
+
 		//--- Measure Dest
-		fConn, gConn, hConn = nil, nil, nil
+		fConn, gConn, hConn, pConn = nil, nil, nil, nil
 		if config.Plugins[i].MeasureDest[0] == "file" {
 			fConn, err	= os.OpenFile(config.Plugins[i].MeasureDest[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		} else {
@@ -250,6 +252,17 @@ func main() {
         }
         if err != nil {
                 contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing warning function destination")
+                os.Exit(16)
+		}	
+
+        //--- Page Dest - This happens when Thresholds are exceeded and is BAD
+        if config.Plugins[i].PageDest[0] == "file" {
+                iConn, err      = os.OpenFile(config.Plugins[i].PageDest[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+        } else {
+                pConn, err      = net.Dial(config.Plugins[i].PageDest[0], config.Plugins[i].PageDest[1])
+        }
+        if err != nil {
+                contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing pagingfunction destination")
                 os.Exit(16)
 		}	
 
@@ -286,6 +299,11 @@ func main() {
             WarnFile:       config.Plugins[i].WarnDest[0] == "file",
             WarnConn:       oConn,
             WarnHandle:     hConn,
+
+            PageCount:      0,
+            PageFile:       config.Plugins[i].PageDest[0] == "file",
+            PageConn:       pConn,
+            PageHandle:     iConn,
 
             RollW1count: 	w1Count,
             RollW2count: 	w2Count,

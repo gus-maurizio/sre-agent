@@ -79,6 +79,7 @@ type Config struct {
     DefMeasureDest   []string 	`yaml:"defaultmeasuredest"`
     DefAlertDest     []string 	`yaml:"defaultalertdest"`
     DefWarnDest      []string 	`yaml:"defaultwarndest"`
+    DefPageDest      []string 	`yaml:"defaultpagedest"`
 
 	DefaultRollW1	string 		`yaml:"defaultrollingwindow1"`
 	DefaultRollW2	string 		`yaml:"defaultrollingwindow2"`
@@ -93,6 +94,7 @@ type Config struct {
 		MeasureDest  []string 	`yaml:"measuredest"`
 		AlertDest    []string 	`yaml:"alertdest"`
 		WarnDest     []string 	`yaml:"warndest"`
+		PageDest     []string 	`yaml:"pagedest"`
 		PluginTick   string 	`yaml:"plugintimetick"`
 		PluginRollW1 string 	`yaml:"plugintrollingwindow1"`
 		PluginRollW2 string 	`yaml:"plugintrollingwindow2"`
@@ -132,6 +134,11 @@ type PluginState struct {
     WarnFile        bool 		`json:"warnfile"`
     WarnHandle      *os.File	`json:"-"`
 	WarnConn		net.Conn 	`json:"-"`
+
+    PageCount       int			`json:"pagecount"`
+    PageFile        bool 		`json:"pagefile"`
+    PageHandle      *os.File	`json:"-"`
+	PageConn		net.Conn 	`json:"-"`
 
 	RollW1count		int			`json:"rollw1"`
 	RollW2count		int			`json:"rollw2"`
