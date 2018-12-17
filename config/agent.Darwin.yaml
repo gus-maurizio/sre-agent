@@ -67,13 +67,13 @@ plugins:
                                 "cpu":
                                 {
                                     "low":          2,
-                                    "design":       40.0,
+                                    "design":       60.0,
                                     "engineered":   80.0
                                 },
                                 "anycpu":
                                 {
                                     "low":          0,
-                                    "design":       55.0,
+                                    "design":       80.0,
                                     "engineered":   90.0
                                 }
                             },
