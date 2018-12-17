@@ -96,7 +96,7 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 		} 
 
 		// Good idea to log
-		pluginLogger.WithFields(log.Fields{"myModuleData": myModuleData}).Info("tick")
+		pluginLogger.WithFields(log.Fields{"myModuleData": myModuleData}).Debug("tick")
 		// Update metrics related to the plugin
 		overheadMetric.With(prometheus.Labels{"plugin":myName}).Set(myModuleData.TimeOverhead)
 		messageMetric.With(prometheus.Labels{"plugin":myName}).Inc()
