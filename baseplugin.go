@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+
+
 func pluginMaker(context types.Context, tick *time.Ticker, pName string, plugin types.FPlugin, measure  func() ([]uint8, []uint8, float64)) {
 	go plugin(context, pName, tick, measure)
 }
