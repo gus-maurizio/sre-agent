@@ -51,11 +51,13 @@ type ModuleContext struct {
 // will return a json structure. 
 
 type ModuleData struct {
-	RunId		string   		`json:"runid"`
-	Timestamp	float64  		`json:"timestamp"`
-	ModContext	ModuleContext	`json:"modulecontext"`
-	Measure		interface{}		`json:"measure"`
-	TimeOverhead	float64		`json:"overhead"`
+	RunId			string   		`json:"runid"`
+	Timestamp		float64  		`json:"timestamp"`
+	ModContext		ModuleContext	`json:"modulecontext"`
+	Measure			interface{}		`json:"measure"`
+	Measuretime 	float64			`json:"measuretime"`
+	TimeOverhead	float64			`json:"overhead"`
+	PState 			PluginState		`json:"state"`
 }
 
 // This is what gets loaded from the -f .yaml configuration file
