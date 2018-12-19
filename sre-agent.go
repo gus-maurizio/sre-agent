@@ -149,7 +149,8 @@ func main() {
 			getDetailInfo()
 			myDynamicDetailInfo["timestamp"] = float64(time.Now().UnixNano())/1e9
 			myDynamicDetailInfo["context"]   = myContext
-			infoAnswer, ierr := json.MarshalIndent(myDynamicDetailInfo, "", "\t") 
+			// infoAnswer, ierr := json.MarshalIndent(myDynamicDetailInfo, "", "\t") 
+			infoAnswer, ierr := json.Marshal(myDynamicDetailInfo) 
 			if ierr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", ierr) }
 			fmt.Fprintf(w, "%s\n", infoAnswer)
         case config.DetailHandle + "state":	
@@ -157,9 +158,14 @@ func main() {
             if serr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", serr) }
             fmt.Fprintf(w, "%s\n", infoAnswer)
         case config.DetailHandle + "history":	
-            infoHistory, herr := json.MarshalIndent(MapHistory, "", "\t")
+            infoHistory, herr := json.Marshal(MapHistory)
             if herr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", herr) }
             fmt.Fprintf(w, "%s\n", infoHistory)
+        case config.DetailHandle + "plugin":	
+        	for pname, phistory := range(MapHistory) {
+				pHistory, _ := json.Marshal(phistory)
+				fmt.Fprintf(w, "{\"%s\": %s}\n\n", pname, pHistory)       		
+        	}
         case config.DetailHandle + "summary":
             getInfo()
             myDynamicInfo["timestamp"] = float64(time.Now().UnixNano())/1e9
@@ -168,7 +174,7 @@ func main() {
             if ierr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", ierr) }
             fmt.Fprintf(w, "%s\n", infoAnswer)
 		default:	
-			fmt.Fprintf(w, "%s\n", "must specify /all /state /summary /history")
+			fmt.Fprintf(w, "%s\n", "must specify /all /state /summary /history /plugin")
 		}
 	})
 
