@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/gus-maurizio/structures/duplexqueue"
 	"net"
 	"os"
 	"plugin"
@@ -113,6 +114,13 @@ type PluginRuntime struct {
 	PluginName 		string
 	PState 			*PluginState
 }
+
+type PluginHistory struct {
+	Metric 			duplexqueue.Duplexqueue
+	RollW1 			duplexqueue.Duplexqueue
+	RollW2 			duplexqueue.Duplexqueue
+}
+
 
 type PluginState struct {
 	AlertFunction	bool		`json:"alertfunction"`

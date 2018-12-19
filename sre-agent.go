@@ -27,6 +27,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gus-maurizio/sre-agent/types"
+	//"github.com/gus-maurizio/structures/duplexqueue"
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/text/language"
@@ -49,6 +50,7 @@ import (
 
 var MapRuntime  	map[string]*types.PluginRuntime
 var MapPlugState   	map[string]*types.PluginState
+var MapHistory		map[string]*types.PluginHistory
 
 var p = message.NewPrinter(language.English)
 
@@ -154,6 +156,10 @@ func main() {
             infoAnswer, serr := json.MarshalIndent(MapPlugState, "", "\t")
             if serr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", serr) }
             fmt.Fprintf(w, "%s\n", infoAnswer)
+        case config.DetailHandle + "history":	
+            infoHistory, herr := json.MarshalIndent(MapHistory, "", "\t")
+            if herr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", herr) }
+            fmt.Fprintf(w, "%s\n", infoHistory)
         case config.DetailHandle + "summary":
             getInfo()
             myDynamicInfo["timestamp"] = float64(time.Now().UnixNano())/1e9
@@ -162,7 +168,7 @@ func main() {
             if ierr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", ierr) }
             fmt.Fprintf(w, "%s\n", infoAnswer)
 		default:	
-			fmt.Fprintf(w, "%s\n", "must specify /all /state or /summary")
+			fmt.Fprintf(w, "%s\n", "must specify /all /state /summary /history")
 		}
 	})
 
@@ -174,8 +180,9 @@ func main() {
 
 	//--------------------------------------------------------------------------//
 	// Create the state machine
-	MapPlugState = make(map[string]*types.PluginState, len(config.Plugins))
+	MapPlugState = make(map[string]*types.PluginState,  len(config.Plugins))
 	MapRuntime   = make(map[string]*types.PluginRuntime,len(config.Plugins))
+	MapHistory   = make(map[string]*types.PluginHistory,len(config.Plugins))
 
 	// Scan the configuration to load all the plugins
 	for i := range config.Plugins {
@@ -317,11 +324,18 @@ func main() {
 
 			PluginAlert:	pluginAlert.(func([]byte) (string, string, bool, error) ),
        	}
+
 		MapRuntime[config.Plugins[i].PluginName] = &types.PluginRuntime{
 			Ticker: 		time.NewTicker(plugintick), 
 			PluginName: 	config.Plugins[i].PluginName,
 			PState:			MapPlugState[config.Plugins[i].PluginName],
 		}
+
+		MapHistory[config.Plugins[i].PluginName] = &types.PluginHistory{}
+		MapHistory[config.Plugins[i].PluginName].Metric.Init(10,0)
+		MapHistory[config.Plugins[i].PluginName].RollW1.Init(20,0)
+		MapHistory[config.Plugins[i].PluginName].RollW2.Init(30,0)
+
 		// Now we have all the elements to call the pluginMaker and pass the parameters
 		contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to create the plugin")
 		pluginMaker(myContext, MapRuntime[config.Plugins[i].PluginName].Ticker, config.Plugins[i].PluginName, basePlugin, pluginMeasure.(func() ([]uint8, []uint8, float64)))
