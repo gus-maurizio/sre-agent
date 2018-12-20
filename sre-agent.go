@@ -33,7 +33,6 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"gopkg.in/yaml.v2"
-	//"html"
 	"io/ioutil"
 	log "github.com/sirupsen/logrus"
 	"math/rand"
@@ -163,8 +162,9 @@ func main() {
             fmt.Fprintf(w, "%s\n", infoHistory)
         case config.DetailHandle + "plugin":	
         	for pname, phistory := range(MapHistory) {
-				pHistory, _ := json.Marshal(phistory)
-				fmt.Fprintf(w, "{\"%s\": %s}\n\n", pname, pHistory)       		
+				fmt.Fprintf(w, "### %s:\n", pname)
+				phistory.Metric.Do( func(m interface{}) { fmt.Fprintf(w,"%+v\n",m) })
+				fmt.Fprintf(w, "\n")
         	}
         case config.DetailHandle + "summary":
             getInfo()
@@ -338,9 +338,9 @@ func main() {
 		}
 
 		MapHistory[config.Plugins[i].PluginName] = &types.PluginHistory{}
-		MapHistory[config.Plugins[i].PluginName].Metric.Init(10,0)
-		MapHistory[config.Plugins[i].PluginName].RollW1.Init(20,0)
-		MapHistory[config.Plugins[i].PluginName].RollW2.Init(30,0)
+		MapHistory[config.Plugins[i].PluginName].Metric.Init(7, nil)
+		MapHistory[config.Plugins[i].PluginName].RollW1.Init(5, 0)
+		MapHistory[config.Plugins[i].PluginName].RollW2.Init(3, 0)
 
 		// Now we have all the elements to call the pluginMaker and pass the parameters
 		contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to create the plugin")

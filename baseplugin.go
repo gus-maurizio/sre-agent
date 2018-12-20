@@ -2,10 +2,11 @@ package main
 
 import (
 	"github.com/gus-maurizio/sre-agent/types"
-	"encoding/json"
-	"fmt"
+	// "github.com/gus-maurizio/structures/duplexqueue"
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus"
+	"encoding/json"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -43,6 +44,9 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 			MapPlugState[myName].AlertMsg, MapPlugState[myName].AlertLvl, MapPlugState[myName].Alert, myerr = MapPlugState[myName].PluginAlert(measuredata)
 			MapPlugState[myName].AlertError = myerr.Error()
 		}
+		// save the measure in the history circular queue
+		// MapHistory[myName].Metric.PushPop(string(measuredata))
+		MapHistory[myName].Metric.PushPop(fmt.Sprintf("{\"plugin\": \"%s\", \"ts\": %f, \"metric\": %s}", myName, mymeasuretime, string(measuredata)))
 		// update the measure count and state, make sure it does not go beyond limits
 		MapPlugState[myName].MeasureCount += 1
 		if MapPlugState[myName].MeasureCount == 2147483647 {MapPlugState[myName].MeasureCount = 0}
