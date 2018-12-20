@@ -100,15 +100,16 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 			if  MapPlugState[myName].WAlerts[rollIdx] >= MapPlugState[myName].TAlerts[rollIdx] ||
 			    MapPlugState[myName].WWarns[rollIdx]  >= MapPlugState[myName].TWarns[rollIdx] {
 				MapPlugState[myName].PageCount += 1
-				pageformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"context\": %s}\n"
+				pageformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"window\": %v, \"context\": %s}\n"
 
 				if MapPlugState[myName].PageCount == 2147483647 { MapPlugState[myName].PageCount = 0 }
 				if MapPlugState[myName].PageFile {
-					fmt.Fprintf(MapPlugState[myName].PageHandle, pageformat, mymeasuretime, myName, jsonContext)
+					fmt.Fprintf(MapPlugState[myName].PageHandle, pageformat, mymeasuretime, myName, rollIdx, jsonContext)
 				} else {
-					fmt.Fprintf(MapPlugState[myName].PageConn,   pageformat, mymeasuretime, myName, jsonContext)
+					fmt.Fprintf(MapPlugState[myName].PageConn,   pageformat, mymeasuretime, myName, rollIdx, jsonContext)
 				}
 				pluginLogger.WithFields(log.Fields{"p": myName, 
+					"window":	rollIdx,
 					"waler":	MapPlugState[myName].WAlerts,
 					"wtaler":	MapPlugState[myName].TAlerts,
 					"warn":		MapPlugState[myName].WWarns,
