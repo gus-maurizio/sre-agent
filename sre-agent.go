@@ -237,7 +237,8 @@ func main() {
 		if len(config.Plugins[i].PageDest)    != 2 { config.Plugins[i].PageDest    = config.DefPageDest }
 
 		//--- Measure Dest
-		fConn, gConn, hConn, pConn = nil, nil, nil, nil
+		fConn, gConn, hConn, iConn = nil, nil, nil, nil
+
 		if config.Plugins[i].MeasureDest[0] == "file" {
 			fConn, err	= os.OpenFile(config.Plugins[i].MeasureDest[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		} else {
@@ -285,17 +286,22 @@ func main() {
 		if err != nil { plugintick, _ = time.ParseDuration(config.DefaultTick) }
 
 		//--- Ensure rolling windows are defined or get them to be the default ones
-		var wDuration 			time.Duration
-		var w1Count, w2Count 	int
+		if len(config.Plugins[i].PluginRollW) == 0 { config.Plugins[i].PluginRollW = config.DefaultRollW }
+		if len(config.Plugins[i].PluginErrT)  == 0 { config.Plugins[i].PluginErrT  = config.DefaultErrT  }
+		if len(config.Plugins[i].PluginWarnT) == 0 { config.Plugins[i].PluginWarnT = config.DefaultWarnT }
 
-		if config.Plugins[i].PluginRollW1 == "" { config.Plugins[i].PluginRollW1 = config.DefaultRollW1 }
-		wDuration, _ 	= time.ParseDuration(config.Plugins[i].PluginRollW1)
-		w1Count			= int(wDuration / plugintick)
+		wRcount 	:=	make([]int, len(config.Plugins[i].PluginRollW))
+		wAcount 	:=	make([]int, len(config.Plugins[i].PluginRollW))
+		wWcount 	:=	make([]int, len(config.Plugins[i].PluginRollW))
 
-		if config.Plugins[i].PluginRollW2 == "" { config.Plugins[i].PluginRollW2 = config.DefaultRollW2 }
-		wDuration, _ 	= time.ParseDuration(config.Plugins[i].PluginRollW2)
-		w2Count			= int(wDuration / plugintick)
+		for winIdx, wLength :=  range(config.Plugins[i].PluginRollW) {
+			wDuration, _ 	:=  time.ParseDuration(wLength)
+			wRcount[winIdx]  =  int(wDuration / plugintick)
+			wAcount[winIdx]  =  0
+			wWcount[winIdx]  =  0
+		}
 
+		// Initialize the Plugin State
 		MapPlugState[config.Plugins[i].PluginName]	= &types.PluginState{	
 			Alert:			false,
 			AlertFunction:	aerr == nil,
@@ -318,12 +324,9 @@ func main() {
             PageConn:       pConn,
             PageHandle:     iConn,
 
-            RollW1count: 	w1Count,
-            RollW2count: 	w2Count,
-            W1Alerts:		0,
-            W1Warns:		0,
-            W2Alerts:		0,
-            W2Warns:		0,
+            RollWcount: 	wRcount,
+            WAlerts:		wAcount,
+            WWarns:			wWcount,
 
             PConfig:		ptrConfig,
             PData:			ptrData,
@@ -338,9 +341,8 @@ func main() {
 		}
 
 		MapHistory[config.Plugins[i].PluginName] = &types.PluginHistory{}
-		MapHistory[config.Plugins[i].PluginName].Metric.Init(7, nil)
-		MapHistory[config.Plugins[i].PluginName].RollW1.Init(5, 0)
-		MapHistory[config.Plugins[i].PluginName].RollW2.Init(3, 0)
+		MapHistory[config.Plugins[i].PluginName].Metric.Init(config.MetricHistory, nil)
+		MapHistory[config.Plugins[i].PluginName].RollW.Init(len(config.Plugins[i].PluginRollW), 0x00)
 
 		// Now we have all the elements to call the pluginMaker and pass the parameters
 		contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to create the plugin")

@@ -84,13 +84,12 @@ type Config struct {
     DefWarnDest      []string 	`yaml:"defaultwarndest"`
     DefPageDest      []string 	`yaml:"defaultpagedest"`
 
-	DefaultRollW1	string 		`yaml:"defaultrollingwindow1"`
-	DefaultRollW2	string 		`yaml:"defaultrollingwindow2"`
+	DefaultRollW	 []string	`yaml:"defaultrollingwindow"`
+	DefaultErrT		 []int		`yaml:"defaulterrorthresh"`
+	DefaultWarnT	 []int		`yaml:"defaultwarnthresh"`
 
-	DefaultErrT1	int			`yaml:"defaulterrorthresh1"`
-	DefaultWarnT1	int			`yaml:"defaultwarnthresh1"`
-    DefaultErrT2    int     	`yaml:"defaulterrorthresh2"`
-    DefaultWarnT2   int     	`yaml:"defaultwarnthresh12`
+	MetricHistory	 int		`yaml:"metrichistory"`
+
 	Plugins []struct {
 		PluginName   string 	`yaml:"pluginname"`
 		PluginModule string 	`yaml:"pluginmodule"`
@@ -99,12 +98,9 @@ type Config struct {
 		WarnDest     []string 	`yaml:"warndest"`
 		PageDest     []string 	`yaml:"pagedest"`
 		PluginTick   string 	`yaml:"plugintimetick"`
-		PluginRollW1 string 	`yaml:"plugintrollingwindow1"`
-		PluginRollW2 string 	`yaml:"plugintrollingwindow2"`
-    	PluginErrT1  int    	`yaml:"pluginerrorthresh1"`
-    	PluginWarnT1 int    	`yaml:"pluginwarnthresh1"`
-        PluginErrT2  int    	`yaml:"pluginerrorthresh2"`
-        PluginWarnT2 int    	`yaml:"pluginwarnthresh2"`
+		PluginRollW  []string 	`yaml:"plugintrollingwindow"`
+    	PluginErrT   []int    	`yaml:"pluginerrorthresh"`
+    	PluginWarnT  []int    	`yaml:"pluginwarnthresh"`
 		PluginConfig string 	`yaml:"pluginconfig"`
 	}
 }
@@ -117,8 +113,7 @@ type PluginRuntime struct {
 
 type PluginHistory struct {
 	Metric 			duplexqueue.Duplexqueue
-	RollW1 			duplexqueue.Duplexqueue
-	RollW2 			duplexqueue.Duplexqueue
+	RollW 			duplexqueue.Duplexqueue
 }
 
 
@@ -150,12 +145,9 @@ type PluginState struct {
     PageHandle      *os.File	`json:"-"`
 	PageConn		net.Conn 	`json:"-"`
 
-	RollW1count		int			`json:"rollw1"`
-	RollW2count		int			`json:"rollw2"`
-	W1Alerts		int 		`json:"w1alerts"`
-	W1Warns			int 		`json:"w1warns"`
-	W2Alerts		int 		`json:"w2alerts"`
-	W2Warns			int 		`json:"w2warns"`
+	RollWcount		[]int		`json:"rollw"`
+	WAlerts			[]int 		`json:"walerts"`
+	WWarns			[]int 		`json:"wwarns"`
 
 	PConfig 		plugin.Symbol	`json:"pluginconfig"`
 	PData 			plugin.Symbol	`json:"plugindata"`
