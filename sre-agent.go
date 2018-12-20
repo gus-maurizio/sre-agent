@@ -294,11 +294,16 @@ func main() {
 		wAcount 	:=	make([]int, len(config.Plugins[i].PluginRollW))
 		wWcount 	:=	make([]int, len(config.Plugins[i].PluginRollW))
 
+		// we need to initialize and compute each rolling window in number of ticks for the plugin
+		// also set the count of alerts and warns to 0
+		// find the largest number of ticks across all windows to set the RollW circular list max size
+		rollWsize := 0
 		for winIdx, wLength :=  range(config.Plugins[i].PluginRollW) {
 			wDuration, _ 	:=  time.ParseDuration(wLength)
 			wRcount[winIdx]  =  int(wDuration / plugintick)
 			wAcount[winIdx]  =  0
 			wWcount[winIdx]  =  0
+			if rollWsize < wRcount[winIdx] { rollWsize = wRcount[winIdx] }
 		}
 
 		// Initialize the Plugin State
@@ -328,6 +333,9 @@ func main() {
             WAlerts:		wAcount,
             WWarns:			wWcount,
 
+            TAlerts:		config.Plugins[i].PluginErrT,
+            TWarns:			config.Plugins[i].PluginWarnT,
+
             PConfig:		ptrConfig,
             PData:			ptrData,
 
@@ -341,8 +349,9 @@ func main() {
 		}
 
 		MapHistory[config.Plugins[i].PluginName] = &types.PluginHistory{}
+		// initialize circular buffers, they will hold an exact number of elements each
 		MapHistory[config.Plugins[i].PluginName].Metric.Init(config.MetricHistory, nil)
-		MapHistory[config.Plugins[i].PluginName].RollW.Init(len(config.Plugins[i].PluginRollW), 0x00)
+		MapHistory[config.Plugins[i].PluginName].RollW.Init(rollWsize, uint8(0))
 
 		// Now we have all the elements to call the pluginMaker and pass the parameters
 		contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to create the plugin")

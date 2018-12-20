@@ -48,13 +48,14 @@ plugins:
     measuredest:                ["file","/tmp/sre-agent.cpu.measure.log"]
     alertdest:                  ["file","/tmp/sre-agent.cpu.alert.log"]
     warndest:                   ["file","/tmp/sre-agent.cpu.warn.log"]
+    pagedest:                   ["file","/tmp/sre-agent.cpu.page.log"]
     #alertdest:                 ["udp","localhost:4322"]
     #warndest:                  ["udp","localhost:4323"]
     pluginmodule:               ./plugin_cpu/Darwin/plugin_cpu.so
-    plugintimetick:             200ms
-    pluginrollingwindow:	    [1m,30m]
-    pluginerrorthresh:          [30,200]
-    pluginwarnthresh:           [50,800]
+    plugintimetick:             500ms
+    pluginrollingwindow:	    [4000ms,8000ms]
+    pluginerrorthresh:          [2,6]
+    pluginwarnthresh:           [4,10]
     pluginconfig:		        '
                 {
                     "alert": 
@@ -89,11 +90,12 @@ plugins:
     measuredest:                ["file","/tmp/sre-agent.load.measure.log"]
     alertdest:                  ["udp",":4328"]
     warndest:                   ["udp",":4329"]
+    pagedest:                   ["file","/tmp/sre-agent.mem.page.log"]
     pluginmodule:               ./plugin_load/Darwin/plugin_load.so
     plugintimetick:             10s
-    pluginrollingwindow:        [1m,30m]
-    pluginerrorthresh:          [30,200]
-    pluginwarnthresh:           [50,800]
+    pluginrollingwindow:        [1m,2m]
+    pluginerrorthresh:          [3,8]
+    pluginwarnthresh:           [5,8]
     pluginconfig:               '
 				{
 					"alert": 
@@ -111,13 +113,15 @@ plugins:
 #
   - pluginname:                 plugin_mem
     measuredest:                ["file","/tmp/sre-agent.mem.measure.log"]
-    alertdest:                  ["udp",":4326"]
-    warndest:                   ["udp",":4327"]
+    alertdest:                  ["file","/tmp/sre-agent.mem.alert.log"]
+    warndest:                   ["file","/tmp/sre-agent.mem.warn.log"]
+    #alertdest:                  ["udp",":4326"]
+    #warndest:                   ["udp",":4327"]
     pluginmodule:               ./plugin_mem/Darwin/plugin_mem.so
-    plugintimetick:             5s
-    pluginrollingwindow:        [1m,30m]
-    pluginerrorthresh:          [2,20]
-    pluginwarnthresh:           [4,40]
+    plugintimetick:             20s
+    pluginrollingwindow:        [1m,5m]
+    pluginerrorthresh:          [2,8]
+    pluginwarnthresh:           [3,12]
     pluginconfig:               '
                 {
                     "alert": 

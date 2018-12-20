@@ -98,7 +98,7 @@ type Config struct {
 		WarnDest     []string 	`yaml:"warndest"`
 		PageDest     []string 	`yaml:"pagedest"`
 		PluginTick   string 	`yaml:"plugintimetick"`
-		PluginRollW  []string 	`yaml:"plugintrollingwindow"`
+		PluginRollW  []string 	`yaml:"pluginrollingwindow"`
     	PluginErrT   []int    	`yaml:"pluginerrorthresh"`
     	PluginWarnT  []int    	`yaml:"pluginwarnthresh"`
 		PluginConfig string 	`yaml:"pluginconfig"`
@@ -148,6 +148,9 @@ type PluginState struct {
 	RollWcount		[]int		`json:"rollw"`
 	WAlerts			[]int 		`json:"walerts"`
 	WWarns			[]int 		`json:"wwarns"`
+
+	TAlerts			[]int 		`json:"talerts"`
+	TWarns			[]int 		`json:"twarns"`
 
 	PConfig 		plugin.Symbol	`json:"pluginconfig"`
 	PData 			plugin.Symbol	`json:"plugindata"`
