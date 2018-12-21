@@ -1,0 +1,11 @@
+FROM golang:1.11.4-alpine3.8
+
+MAINTAINER Gustavo Maurizio <gustavo.maurizio@gmail.com>  
+
+ENV GOVERSION 1.11.4
+ENV GOPATH /mnt
+
+RUN	apk update && \
+	apk add -y gcc file git curl wget musl-dev bash
+
+CMD ["/bin/bash"]

@@ -1,113 +1,140 @@
 # config of runtime
-applicationid:          ASVMYNAME
-moduleid:               go.agent
-versionid:              1.0.0.a
-environmentid:          Production
+applicationid:                  MYAPPNAME
+moduleid:                       go.agent
+versionid:                      1.0.0.a
+environmentid:                  Production
 #------------------------------------------------------------------------------#
 # log preferences
-logformat:		JSON
-#logdest:		STDERR
-prettyprint:		true
-disabletimestamp:	false
+logformat:                      JSON
+#logdest:                       STDERR
+prettyprint:                    true
+disabletimestamp:               false
 #------------------------------------------------------------------------------#
 # Prometheus metric expose
-prometheusport:		9000
-metrichandle:		/metrics
-healthhandle:		/health
-detailhandle:		/detail/
+prometheusport:                 9000
+metrichandle:                   /metrics
+healthhandle:                   /health
+detailhandle:                   /detail/
 #------------------------------------------------------------------------------#
 # defaults for Plugins 
-defaulttimetick:        500ms
-defaultmeasuredest:	["file","/tmp/sre-agent.measure.log"]
-defaultalertdest:	["file","/tmp/sre-agent.alert.log"]
-defaultwarndest:	["file","/tmp/sre-agent.warn.log"]
-#--- two rolling windows are kept to calculate error and warning densities
-defaultrollingwindow1:	15m
-defaultrollingwindow2:	1h
+defaultmeasuredest:             ["file","/tmp/sre-agent.measure.log"]
+defaultalertdest:               ["file","/tmp/sre-agent.alert.log"]
+defaultwarndest:                ["file","/tmp/sre-agent.warn.log"]
+defaultpagedest:                ["file","/tmp/sre-agent.page.log"]
+#--- rolling windows are kept to calculate error and warning densities
+defaulttimetick:                490ms
+defaultrollingwindow:           [1m,10m]
 #--- error and warning default thresholds
 #---   the idea is that errors and warnings can be ephemeral
 #---   and we need to get a few # in each window to call it an emegency
 #---   we also want to limit the # of alerts sent!
 #---   example:
-#---      # of ticks in Roll W1: 15m/500ms = 1800
-#---      # of ticks in Roll W2: 1h/500ms  = 7200
+#---      # of ticks in Roll W1: 1m/490ms = 122
+#---      # of ticks in Roll W2: 10m/490ms  = 1224
 #---      when 03 errors   are detected in 1800 ticks, an ALERT    will be sent
-#---      when 40 warnings are detected in 1800 ticks, a  WARNINGn will be sent
+#---      when 40 warnings are detected in 1800 ticks, a  WARNING  will be sent
 #---      same concept applies to Rolling Window 2
-defaulterrorthresh1: 	3
-defaultwarnthresh1:  	40
+defaulterrorthresh:             [3,10]
+defaultwarnthresh:              [20,80]
 #
-defaulterrorthresh2:    10
-defaultwarnthresh2:    40
+#--- number of metrics in history
+metrichistory:                  30
 #
 #------------------------------------------------------------------------------#
 # plugin configuration section
 plugins:
-  - pluginname:			plugin_cpu
+  - pluginname:                 plugin_cpu
     #measuredest:               ["udp",":4321"]
     measuredest:                ["file","/tmp/sre-agent.cpu.measure.log"]
-    alertdest:			["udp",":4322"]
-    warndest:			["udp",":4323"]
-    pluginmodule:		./plugin_cpu/Linux/plugin_cpu.so
-    plugintimetick:		100ms
-    pluginrollingwindow1:	1m
-    pluginrollingwindow2:	5m
-    pluginerrorthresh1:    	3
-    pluginwarnthresh1:     	40
-    #
-    pluginerrorthresh2:    	10
-    pluginwarnthresh2:    	40
-    pluginconfig:		'
+    alertdest:                  ["file","/tmp/sre-agent.cpu.alert.log"]
+    warndest:                   ["file","/tmp/sre-agent.cpu.warn.log"]
+    pagedest:                   ["file","/tmp/sre-agent.cpu.page.log"]
+    #alertdest:                 ["udp","localhost:4322"]
+    #warndest:                  ["udp","localhost:4323"]
+    pluginmodule:               ./plugin_cpu/Linux/plugin_cpu.so
+    plugintimetick:             500ms
+    pluginrollingwindow:        [4000ms,8000ms]
+    pluginerrorthresh:          [2,6]
+    pluginwarnthresh:           [4,10]
+    pluginconfig:               '
+                {
+                    "alert": 
+                    {
+                        "cpu":
                         {
-                            "alert": 
-                            {
-                                "cpu":
-                                {
-                                    "low":          2,
-                                    "design":       60.0,
-                                    "engineered":   80.0
-                                },
-                                "anycpu":
-                                {
-                                    "low":          0,
-                                    "design":       75.0,
-                                    "engineered":   90.0
-                                }
-                            },
-
-                            "plugin": 
-                            { 
-                                "config":
-                                {
-                                    "cputimes":     10,
-                                    "saturation":   75.0
-                                }
-                            }
+                            "low":          0,
+                            "design":       60.0,
+                            "engineered":   80.0
+                        },
+                        "anycpu":
+                        {
+                            "low":          0,
+                            "design":       80.0,
+                            "engineered":   90.0
                         }
+                    },
+
+                    "plugin": 
+                    { 
+                        "config":
+                        {
+                            "cputimes":     10,
+                            "saturation":   75.0
+                        }
+                    }
+                }
+'
+#
+#
+  - pluginname:                 plugin_load
+    measuredest:                ["file","/tmp/sre-agent.load.measure.log"]
+    alertdest:                  ["udp",":4328"]
+    warndest:                   ["udp",":4329"]
+    pagedest:                   ["file","/tmp/sre-agent.mem.page.log"]
+    pluginmodule:               ./plugin_load/Linux/plugin_load.so
+    plugintimetick:             10s
+    pluginrollingwindow:        [1m,2m]
+    pluginerrorthresh:          [3,8]
+    pluginwarnthresh:           [5,8]
+    pluginconfig:               '
+                {
+                    "alert": 
+                    {
+                        "load":
+                        {
+                            "low":          2,
+                            "design":       60.0,
+                            "engineered":   80.0
+                        }
+                    }
+                }
 '
 #
 #
   - pluginname:                 plugin_mem
     measuredest:                ["file","/tmp/sre-agent.mem.measure.log"]
-    alertdest:                  ["udp",":4326"]
-    warndest:                   ["udp",":4327"]
+    alertdest:                  ["file","/tmp/sre-agent.mem.alert.log"]
+    warndest:                   ["file","/tmp/sre-agent.mem.warn.log"]
+    #alertdest:                  ["udp",":4326"]
+    #warndest:                   ["udp",":4327"]
     pluginmodule:               ./plugin_mem/Linux/plugin_mem.so
-    plugintimetick:             500ms
-    pluginrollingwindow1:       1m
-    pluginrollingwindow2:       1h
-    pluginerrorthresh1:         5
-    pluginwarnthresh1:          50
-    #
-    pluginerrorthresh2:         30
-    pluginwarnthresh2:          50
+    plugintimetick:             20s
+    pluginrollingwindow:        [1m,5m]
+    pluginerrorthresh:          [2,8]
+    pluginwarnthresh:           [3,12]
     pluginconfig:               '
-                                {"alert": {
-                                            "mem":              {"low": 10, "design": 70.0, "engineered": 90.0}
-                                          }
-                                }
+                {
+                    "alert": 
+                    {
+                        "mem":
+                        {
+                            "low":          10, 
+                            "design":       70.0, 
+                            "engineered":   90.0
+                        }
+                    }
+                }
 '
-#
-#
 #
 #
 #------------------------------------------------------------------------------#

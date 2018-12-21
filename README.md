@@ -125,20 +125,19 @@ $ docker run --rm -it -v $GOPATH:/mnt --name goubuntu ubuntu:18.04 /bin/bash
 ```
 $ docker run --rm -it -v $GOPATH:/mnt --name goubuntu ubuntu:18.04 /bin/bash
 # apt update && apt install -y gcc file git curl wget
-# curl -O https://storage.googleapis.com/golang/go1.11.2.linux-amd64.tar.gz
-# tar -xvf go1.11.2.linux-amd64.tar.gz && mv go /usr/local
+# curl -O https://storage.googleapis.com/golang/go1.11.4.linux-amd64.tar.gz
+# tar -xvf go1.11.4.linux-amd64.tar.gz && mv go /usr/local
 # export GOROOT=/usr/local/go
 # export GOPATH=/mnt
 # export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 # cd $GOPATH/src/github.com/gus-maurizio
-# bash scripts/buildplugins.bash plugins linux amd64
-# bash sre-agent/scripts/build.bash
+# bash sre-agent/scripts/build.bash 
 ```
 
 #### Alpine special case (needs review)
 For some (unknown to me) reason, Alpine does not exactly behave like other Unixes.
 ```
-$ docker run --rm -it -v $GOPATH:/mnt --name golang golang:1.11.2-alpine3.8 /bin/sh
+$ docker run --rm -it -v $GOPATH:/mnt --name golang golang:1.11.4-alpine3.8 /bin/sh
 # apk update && apk add -y gcc file git curl wget musl-dev
 # go get -u github.com/gus-maurizio/sre-agent
 # cd $GOPATH/src/github.com/gus-maurizio/sre-agent
