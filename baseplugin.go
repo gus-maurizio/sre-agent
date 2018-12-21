@@ -46,7 +46,7 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 		}
 
 		// save the measure in the history circular queue
-		MapHistory[myName].Metric.PushPop(fmt.Sprintf("{\"plugin\": \"%s\", \"ts\": %f, \"metric\": %s}", myName, mymeasuretime, string(measuredata)))
+		MapHistory[myName].Metric.PushPop(fmt.Sprintf("{\"plugin\": \"%s\", \"when\": \"%s\", \"unixts\": %d, \"measurets\": %f, \"metric\": %s}", myName, t, t.Unix(), mymeasuretime, string(measuredata)))
 
 		// update the measure count and state, make sure it does not go beyond limits
 		MapPlugState[myName].MeasureCount += 1
@@ -123,11 +123,11 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 		MapHistory[myName].RollW.PushPop(rollwBits)
 
 		// Time to send to measure destination
-		logformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"measure\": %s, \"context\": %s}\n"
+		logformat := "{\"when\": \"%s\", \"unixts\": %d, \"timestamp\": %f, \"plugin\": \"%s\", \"measure\": %s, \"context\": %s}\n"
 		if MapPlugState[myName].MeasureFile {
-			fmt.Fprintf(MapPlugState[myName].MeasureHandle, logformat, mymeasuretime, myName, measuredata, jsonContext)
+			fmt.Fprintf(MapPlugState[myName].MeasureHandle, logformat, t, t.Unix(), mymeasuretime, myName, measuredata, jsonContext)
 		} else {
-			fmt.Fprintf(MapPlugState[myName].MeasureConn,   logformat, mymeasuretime, myName, measuredata, jsonContext)
+			fmt.Fprintf(MapPlugState[myName].MeasureConn,   logformat, t, t.Unix(), mymeasuretime, myName, measuredata, jsonContext)
 		}
 		
 		err := json.Unmarshal(measuredata, &myMeasure)
