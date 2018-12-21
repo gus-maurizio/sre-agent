@@ -1,10 +1,9 @@
 package main
 
 import (
-	"github.com/gus-maurizio/sre-agent/types"
-	// "github.com/gus-maurizio/structures/duplexqueue"
+	"github.com/gus-maurizio/sreagent/types"
+	"github.com/prometheus/client_golang/prometheus"	
 	"github.com/google/uuid"
-	"github.com/prometheus/client_golang/prometheus"
 	"encoding/json"
 	"fmt"
 	log "github.com/sirupsen/logrus"
@@ -12,12 +11,7 @@ import (
 )
 
 
-
-func pluginMaker(context types.Context, tick *time.Ticker, pName string, plugin types.FPlugin, measure  func() ([]uint8, []uint8, float64)) {
-	go plugin(context, pName, tick, measure)
-}
-
-func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, measure types.FuncMeasure) {
+func pluginLauncher(myName string, myContext types.Context, ticker *time.Ticker, measure types.FuncMeasure) {
 	traceid 		:= uuid.New().String()
 	pluginLogger 	:= log.WithFields(log.Fields{"pluginname": myName, "context": myContext})
 	jsonContext, _ 	:= json.Marshal(myContext)
@@ -30,14 +24,14 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 
 		// Just in case there is no Alert function defined, initialize to all is ok
 		MapPlugState[myName].AlertMsg	= ""
-		MapPlugState[myName].AlertLvl	= ""
+		MapPlugState[myName].AlertLvl	= ""	
+		MapPlugState[myName].AlertError = "n/a"
 		MapPlugState[myName].Alert 		= false
 		MapPlugState[myName].Warning 	= false
-		
-		MapPlugState[myName].AlertError = "n/a"
 
-		// Now do the measurements
+		// Now do the measurements and save results in the history circular buffer
 		measuredata, _, mymeasuretime := measure()
+		MapHistory[myName].Metric.PushPop(fmt.Sprintf("{\"plugin\": \"%s\", \"at\": \"%s\", \"unixts\": %d, \"measurets\": %f, \"metric\": %s}", myName, t, t.Unix(), mymeasuretime, string(measuredata)))
 
 		if MapPlugState[myName].AlertFunction {
 			var myerr error
@@ -45,8 +39,6 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 			MapPlugState[myName].AlertError = myerr.Error()
 		}
 
-		// save the measure in the history circular queue
-		MapHistory[myName].Metric.PushPop(fmt.Sprintf("{\"plugin\": \"%s\", \"when\": \"%s\", \"unixts\": %d, \"measurets\": %f, \"metric\": %s}", myName, t, t.Unix(), mymeasuretime, string(measuredata)))
 
 		// update the measure count and state, make sure it does not go beyond limits
 		MapPlugState[myName].MeasureCount += 1
@@ -123,7 +115,7 @@ func basePlugin(myContext types.Context, myName string, ticker *time.Ticker, mea
 		MapHistory[myName].RollW.PushPop(rollwBits)
 
 		// Time to send to measure destination
-		logformat := "{\"when\": \"%s\", \"unixts\": %d, \"timestamp\": %f, \"plugin\": \"%s\", \"measure\": %s, \"context\": %s}\n"
+		logformat := "{\"at\": \"%s\", \"unixts\": %d, \"timestamp\": %f, \"plugin\": \"%s\", \"measure\": %s, \"context\": %s}\n"
 		if MapPlugState[myName].MeasureFile {
 			fmt.Fprintf(MapPlugState[myName].MeasureHandle, logformat, t, t.Unix(), mymeasuretime, myName, measuredata, jsonContext)
 		} else {

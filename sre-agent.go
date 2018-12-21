@@ -23,339 +23,137 @@ package main
 import _ "net/http/pprof"
 
 import (
-	"encoding/json"
 	"flag"
-	"fmt"
-	"github.com/gus-maurizio/sre-agent/types"
-	//"github.com/gus-maurizio/structures/duplexqueue"
-	"github.com/google/uuid"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
+	"github.com/gus-maurizio/sreagent/types"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	log "github.com/sirupsen/logrus"
 	"math/rand"
-	"net"
-	"net/http"
 	"os"
+	"os/user"
 	"os/signal"
 	"path/filepath"
 	"plugin"
 	"syscall"
 	"time"
-	"strconv"
 )
 
-var MapRuntime  	map[string]*types.PluginRuntime
-var MapPlugState   	map[string]*types.PluginState
-var MapHistory		map[string]*types.PluginHistory
+var MapRuntime  			map[string]*types.PluginRuntime
+var MapPlugState   			map[string]*types.PluginState
+var MapHistory				map[string]*types.PluginHistory
 
-var p = message.NewPrinter(language.English)
+var Config 					types.Config = types.Config{}
 
-func cleanup() {
-	log.Info("Program Cleanup Started")
-	jsonContext, _ 	:= json.Marshal(myContext)
-	ts := float64(time.Now().UnixNano())/1e9
-	for pluginIdx, PluginPtr := range(MapRuntime) { 
-		log.Info(  p.Sprintf("Stopping plugin %20s %20s ticker %#v\n", pluginIdx, PluginPtr.PluginName, PluginPtr.Ticker) )
-		PluginPtr.Ticker.Stop()
-		logformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"measure\": %s, \"context\": %s}\n"
-		measuredata := "plugin stopped"
-		if MapPlugState[pluginIdx].MeasureFile {
-			fmt.Fprintf(MapPlugState[pluginIdx].MeasureHandle, logformat, ts, pluginIdx, measuredata, jsonContext)
-		} else {
-			fmt.Fprintf(MapPlugState[pluginIdx].MeasureConn,   logformat, ts, pluginIdx, measuredata, jsonContext)
-		}
-	}
+var myContext            	types.Context 
+
+var myModContext         	types.ModuleContext 
+var myName					string
+var myExecDir				string
+var contextLogger			*log.Entry
+
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
+    // Setup logging
+    //log.SetFormatter(&log.JSONFormatter{})
+    log.SetOutput(os.Stdout)
+    log.SetLevel(log.InfoLevel)
+    log.SetFormatter(&log.TextFormatter{
+            DisableColors: false,
+            FullTimestamp: true,
+            })
+    // This can be removed if CPU overhead is too high
+    //log.SetReportCaller(true)
+
+	//Get all the components needed to populate Context.
+	osUser, _ 				:= user.Current()
+	myContext.UserId  		= osUser.Username 
+	myContext.UserUID 		= osUser.Uid 
+	myContext.ExecuteId, _ 	= os.Hostname()
+	myContext.AccountId 	= "000000000000"
+
 }
 
 func main() {
 	// get the program name and directory where it is loaded from
-	// also create a properly formatted (language aware) printer object
-	myName    := filepath.Base(os.Args[0])
-	myExecDir := filepath.Dir(os.Args[0])
+	myName    = filepath.Base(os.Args[0])
+	myExecDir = filepath.Dir(os.Args[0])
 
 	//--------------------------------------------------------------------------//
-	// good practice to initialize what we want and read the command line options
-	rand.Seed(time.Now().UTC().UnixNano())
+	// Read the command line options and store in Config global variable
 
 	yamlPtr  := flag.String("f", "./config/agent.yaml", "Agent configuration YAML file")
 	debugPtr := flag.Bool("d", false, "Agent debug mode - verbose")
 	flag.Parse()
-
-	//--------------------------------------------------------------------------//
+	if *debugPtr { log.SetLevel(log.DebugLevel) }
 	// read the yaml configuration into the Config structure
-	config := types.Config{}
 	yamlFile, err := ioutil.ReadFile(*yamlPtr)
 	if err != nil {
 		log.Fatalf("config YAML file Get err  #%v ", err)
 	}
-	err = yaml.Unmarshal(yamlFile, &config)
+	err = yaml.Unmarshal(yamlFile, &Config)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
-	// See if LogFormat is needed
-	if config.LogDest   == "STDERR" { log.SetOutput(os.Stderr) }
-	if config.LogFormat == "JSON"   { log.SetFormatter(&log.JSONFormatter{ DisableTimestamp: config.DisableTimestamp, PrettyPrint: config.PrettyPrint}) }
-	if *debugPtr { log.SetLevel(log.DebugLevel) }
-
-
-	log.Info( p.Sprintf("Program %s [from %s] Started", myName, myExecDir) )
-	log.Debug( p.Sprintf("config: %+v\n", config) )
-
-	//--------------------------------------------------------------------------//
-	// Complete the Context values with non-changing information (while we are alive!)
-
-    myContext.AccountId      = "000000000000"
-    myContext.ApplicationId  = config.ApplicationId
-    myContext.ModuleId       = config.ModuleId
-    myContext.VersionId      = config.VersionId
-    myContext.EnvironmentId  = config.EnvironmentId
-    myContext.ComputeId      = "iMac"
-    myContext.RegionId       = "US-EAST"
-    myContext.ZoneId         = "Reston"
-    myContext.RunId          = uuid.New().String()
-
-	// Set the context in the logger as default
-	contextLogger := log.WithFields(log.Fields{"name": myName, "context": myContext})
-    contextLogger.WithFields(log.Fields{"staticinfo": myStaticInfo}).Info( "STATIC" )
-	//--------------------------------------------------------------------------//
-	// time to start a prometheus metrics server
-	// and export any metrics on the /metrics endpoint.
-	http.Handle(config.MetricHandle, promhttp.Handler())
-	// we now add a health function!
-	http.HandleFunc(config.HealthHandle, func(w http.ResponseWriter, r *http.Request) {
-		//fmt.Fprintf(w, "Hello, %q\n", html.EscapeString(r.URL.Path))
-		answer := struct {
-				Timestamp	float64
-				ContextData	types.Context
-				Staticinfo	[]interface{}
-			} { 	float64(time.Now().UnixNano())/1e9,
-				myContext,
-				myStaticInfo,
-			}
-		jsonAnswer, err := json.MarshalIndent(answer, "", "\t")
-		if err != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", err) }
-		fmt.Fprintf(w, "%s\n", jsonAnswer)
-	})
-
-    // we now add a details function!
-    http.HandleFunc(config.DetailHandle, func(w http.ResponseWriter, r *http.Request) {
-        //fmt.Fprintf(w, "Hello, %q\n", html.EscapeString(r.URL.Path))
-		switch r.URL.Path {
-		case config.DetailHandle + "all":
-			getDetailInfo()
-			myDynamicDetailInfo["timestamp"] = float64(time.Now().UnixNano())/1e9
-			myDynamicDetailInfo["context"]   = myContext
-			// infoAnswer, ierr := json.MarshalIndent(myDynamicDetailInfo, "", "\t") 
-			infoAnswer, ierr := json.Marshal(myDynamicDetailInfo) 
-			if ierr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", ierr) }
-			fmt.Fprintf(w, "%s\n", infoAnswer)
-        case config.DetailHandle + "state":	
-            infoAnswer, serr := json.MarshalIndent(MapPlugState, "", "\t")
-            if serr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", serr) }
-            fmt.Fprintf(w, "%s\n", infoAnswer)
-        case config.DetailHandle + "history":	
-            infoHistory, herr := json.Marshal(MapHistory)
-            if herr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", herr) }
-            fmt.Fprintf(w, "%s\n", infoHistory)
-        case config.DetailHandle + "plugin":	
-        	for pname, phistory := range(MapHistory) {
-				fmt.Fprintf(w, "### %s:\n", pname)
-				phistory.Metric.Do( func(m interface{}) { fmt.Fprintf(w,"%+v\n",m) })
-				fmt.Fprintf(w, "\n")
-        	}
-        case config.DetailHandle + "summary":
-            getInfo()
-            myDynamicInfo["timestamp"] = float64(time.Now().UnixNano())/1e9
-            myDynamicInfo["context"]   = myContext
-            infoAnswer, ierr := json.MarshalIndent(myDynamicInfo, "", "\t")
-            if ierr != nil { contextLogger.Fatal("Cannot json marshal info. Err %s", ierr) }
-            fmt.Fprintf(w, "%s\n", infoAnswer)
-		default:	
-			fmt.Fprintf(w, "%s\n", "must specify /all /state /summary /history /plugin")
-		}
-	})
-
-	// Launch the Prometheus server that will answer to the /metrics requests
-	go func() {
-		contextLogger.WithFields(log.Fields{"prometheusport": config.PrometheusPort, "prometheuspath": config.MetricHandle}).Debug("Beginning metrics")
-		contextLogger.Fatal(http.ListenAndServe(":"+strconv.Itoa(config.PrometheusPort), nil))
-	}()
 
 	//--------------------------------------------------------------------------//
 	// Create the state machine
-	MapPlugState = make(map[string]*types.PluginState,  len(config.Plugins))
-	MapRuntime   = make(map[string]*types.PluginRuntime,len(config.Plugins))
-	MapHistory   = make(map[string]*types.PluginHistory,len(config.Plugins))
+	MapPlugState = make(map[string]*types.PluginState,  len(Config.Plugins))
+	MapHistory   = make(map[string]*types.PluginHistory,len(Config.Plugins))
 
-	// Scan the configuration to load all the plugins
-	for i := range config.Plugins {
-		contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Debug("plugin")
-		// load the plugin
-		plug, lerr := plugin.Open(config.Plugins[i].PluginModule)
+	MapRuntime   = make(map[string]*types.PluginRuntime,len(Config.Plugins))
+	//--------------------------------------------------------------------------//
+	// Process all configuration items and setup REST api and Prometheus Metrics
+	log.Info("before config")
+	processConfig()
+	log.Info("before resApi")
+	setupRestAPIs()
+
+	log.Info("after resApi")
+
+	// Load the plugins:
+	// Plugin MUST: 	1) exist, 2) have PluginMeasure exported,
+	// 		  OPTIONAL: 3) have PluginConfig and PluginData exported
+	// 					4) InitPlugin and PluginAlert functions
+	for i := range Config.Plugins {
+		plug, lerr := plugin.Open(Config.Plugins[i].PluginModule)
 		if lerr != nil {
-			contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": lerr}).Fatal("Error loading plugin")
+			contextLogger.WithFields(log.Fields{"plugin_entry": Config.Plugins[i], "error": lerr}).Fatal("Error loading plugin")
 			os.Exit(16)
 		}
 		// Identify the main needed function exported as symbol PluginMeasure
 		pluginMeasure, perr := plug.Lookup("PluginMeasure")
         if perr != nil {
-			contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": perr}).Fatal("Error loading measure function")
-			continue
-        }
-		// It is possible that the plugin needs a ONE TIME initialization via function exported as symbol InitPlugin
-		// and then pass the config parameter pluginconfig, a string that usually is a json element
-        pluginInit, ierr := plug.Lookup("InitPlugin")
-        if ierr == nil {
-			contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to initialize plugin")
-			pluginInit.(func(string) ())(config.Plugins[i].PluginConfig)
-        }
-
-        // It is possible that the plugin needs to check for alerts via function exported as symbol PluginAlert
-        // and then pass the measurement made []byte
-        pluginAlert, aerr := plug.Lookup("PluginAlert")
-        if aerr == nil {
-			contextLogger.Info("There is an Alert defined")
-        }
-
-
-        // Plugin Should export PluginConfig and PluginData
+			contextLogger.WithFields(log.Fields{"plugin_entry": Config.Plugins[i], "error": perr}).Fatal("Error loading measure function")
+			os.Exit(16)
+		}
+        // Plugin might export PluginConfig and PluginData
         ptrConfig, pcerr := plug.Lookup("PluginConfig")
         if pcerr != nil { ptrConfig = nil }
         ptrData, pcerr   := plug.Lookup("PluginData")
         if pcerr != nil { ptrData = nil }
-
-		// initialize the state machine
-		var mConn,nConn,oConn,pConn net.Conn
-		var fConn,gConn,hConn,iConn *os.File
-		//--- Ensure Dests are defined at plugin level or get them to be the default ones
-		if len(config.Plugins[i].MeasureDest) != 2 { config.Plugins[i].MeasureDest = config.DefMeasureDest }
-		if len(config.Plugins[i].AlertDest)   != 2 { config.Plugins[i].AlertDest   = config.DefAlertDest }
-		if len(config.Plugins[i].WarnDest)    != 2 { config.Plugins[i].WarnDest    = config.DefWarnDest }
-		if len(config.Plugins[i].PageDest)    != 2 { config.Plugins[i].PageDest    = config.DefPageDest }
-
-		//--- Measure Dest
-		fConn, gConn, hConn, iConn = nil, nil, nil, nil
-
-		if config.Plugins[i].MeasureDest[0] == "file" {
-			fConn, err	= os.OpenFile(config.Plugins[i].MeasureDest[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		} else {
-			mConn, err 	= net.Dial(config.Plugins[i].MeasureDest[0], config.Plugins[i].MeasureDest[1])	
-		}
-        if err != nil {
-                contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing measurement function destination")
-                os.Exit(16)
+        pluginInit, ierr := plug.Lookup("InitPlugin")
+        if ierr == nil {
+			contextLogger.WithFields(log.Fields{"plugin_entry": Config.Plugins[i]}).Info("about to initialize plugin")
+			pluginInit.(func(string) ())(Config.Plugins[i].PluginConfig)
         }
-        //--- Alert Dest
-        if config.Plugins[i].AlertDest[0] == "file" {
-                gConn, err      = os.OpenFile(config.Plugins[i].AlertDest[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-        } else {
-                nConn, err      = net.Dial(config.Plugins[i].AlertDest[0], config.Plugins[i].AlertDest[1])
+        pluginAlert, aerr := plug.Lookup("PluginAlert")
+        if aerr == nil {
+			contextLogger.Info("There is an Alert defined")
+			MapPlugState[Config.Plugins[i].PluginName].AlertFunction = true
+			MapPlugState[Config.Plugins[i].PluginName].PluginAlert   = pluginAlert.( func([]byte) (string, string, bool, error) )
         }
-        if err != nil {
-                contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing alert function destination")
-                os.Exit(16)
-        }
-        //--- Warning Dest
-        if config.Plugins[i].WarnDest[0] == "file" {
-                hConn, err      = os.OpenFile(config.Plugins[i].WarnDest[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-        } else {
-                oConn, err      = net.Dial(config.Plugins[i].WarnDest[0], config.Plugins[i].WarnDest[1])
-        }
-        if err != nil {
-                contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing warning function destination")
-                os.Exit(16)
-		}	
 
-        //--- Page Dest - This happens when Thresholds are exceeded and is BAD
-        if config.Plugins[i].PageDest[0] == "file" {
-                iConn, err      = os.OpenFile(config.Plugins[i].PageDest[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-        } else {
-                pConn, err      = net.Dial(config.Plugins[i].PageDest[0], config.Plugins[i].PageDest[1])
-        }
-        if err != nil {
-                contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i], "error": err}).Fatal("Error dialing pagingfunction destination")
-                os.Exit(16)
-		}	
-
-		// Compute the TICK between measurements
-		if config.Plugins[i].PluginTick == "" { config.Plugins[i].PluginTick = config.DefaultTick }
-		plugintick, err := time.ParseDuration(config.Plugins[i].PluginTick)
-		if err != nil { plugintick, _ = time.ParseDuration(config.DefaultTick) }
-
-		//--- Ensure rolling windows are defined or get them to be the default ones
-		if len(config.Plugins[i].PluginRollW) == 0 { config.Plugins[i].PluginRollW = config.DefaultRollW }
-		if len(config.Plugins[i].PluginErrT)  == 0 { config.Plugins[i].PluginErrT  = config.DefaultErrT  }
-		if len(config.Plugins[i].PluginWarnT) == 0 { config.Plugins[i].PluginWarnT = config.DefaultWarnT }
-
-		wRcount 	:=	make([]int, len(config.Plugins[i].PluginRollW))
-		wAcount 	:=	make([]int, len(config.Plugins[i].PluginRollW))
-		wWcount 	:=	make([]int, len(config.Plugins[i].PluginRollW))
-
-		// we need to initialize and compute each rolling window in number of ticks for the plugin
-		// also set the count of alerts and warns to 0
-		// find the largest number of ticks across all windows to set the RollW circular list max size
-		rollWsize := 0
-		for winIdx, wLength :=  range(config.Plugins[i].PluginRollW) {
-			wDuration, _ 	:=  time.ParseDuration(wLength)
-			wRcount[winIdx]  =  int(wDuration / plugintick)
-			wAcount[winIdx]  =  0
-			wWcount[winIdx]  =  0
-			if rollWsize < wRcount[winIdx] { rollWsize = wRcount[winIdx] }
-		}
-
-		// Initialize the Plugin State
-		MapPlugState[config.Plugins[i].PluginName]	= &types.PluginState{	
-			Alert:			false,
-			AlertFunction:	aerr == nil,
-			MeasureCount:	0,
-			MeasureFile:    config.Plugins[i].MeasureDest[0] == "file",
-			MeasureConn:	mConn,
-			MeasureHandle:	fConn,
-			AlertCount:		0,
-            AlertFile:    	config.Plugins[i].AlertDest[0] == "file",
-            AlertConn:    	nConn,
-            AlertHandle:  	gConn,
-
-            WarnCount:      0,
-            WarnFile:       config.Plugins[i].WarnDest[0] == "file",
-            WarnConn:       oConn,
-            WarnHandle:     hConn,
-
-            PageCount:      0,
-            PageFile:       config.Plugins[i].PageDest[0] == "file",
-            PageConn:       pConn,
-            PageHandle:     iConn,
-
-            RollWcount: 	wRcount,
-            WAlerts:		wAcount,
-            WWarns:			wWcount,
-
-            TAlerts:		config.Plugins[i].PluginErrT,
-            TWarns:			config.Plugins[i].PluginWarnT,
-
-            PConfig:		ptrConfig,
-            PData:			ptrData,
-
-			PluginAlert:	pluginAlert.(func([]byte) (string, string, bool, error) ),
-       	}
-
-		MapRuntime[config.Plugins[i].PluginName] = &types.PluginRuntime{
-			Ticker: 		time.NewTicker(plugintick), 
-			PluginName: 	config.Plugins[i].PluginName,
-			PState:			MapPlugState[config.Plugins[i].PluginName],
-		}
-
-		MapHistory[config.Plugins[i].PluginName] = &types.PluginHistory{}
-		// initialize circular buffers, they will hold an exact number of elements each
-		MapHistory[config.Plugins[i].PluginName].Metric.Init(config.MetricHistory, nil)
-		MapHistory[config.Plugins[i].PluginName].RollW.Init(rollWsize, uint8(0))
+		MapPlugState[Config.Plugins[i].PluginName].PConfig 			= ptrConfig
+		MapPlugState[Config.Plugins[i].PluginName].PData 			= ptrData
 
 		// Now we have all the elements to call the pluginMaker and pass the parameters
-		contextLogger.WithFields(log.Fields{"plugin_entry": config.Plugins[i]}).Info("about to create the plugin")
-		pluginMaker(myContext, MapRuntime[config.Plugins[i].PluginName].Ticker, config.Plugins[i].PluginName, basePlugin, pluginMeasure.(func() ([]uint8, []uint8, float64)))
+		contextLogger.WithFields(log.Fields{"plugin_entry": Config.Plugins[i]}).Info("about to create the plugin")
+		go pluginLauncher(
+						Config.Plugins[i].PluginName, 
+						myContext, 
+						MapRuntime[Config.Plugins[i].PluginName].Ticker, 
+						pluginMeasure.(func() ([]uint8, []uint8, float64)),
+						)
 	}
 
 	//--------------------------------------------------------------------------//
