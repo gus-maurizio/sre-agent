@@ -24,7 +24,7 @@ import _ "net/http/pprof"
 
 import (
 	"flag"
-	"github.com/gus-maurizio/sreagent/types"
+	"github.com/gus-maurizio/sre-agent/types"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	log "github.com/sirupsen/logrus"

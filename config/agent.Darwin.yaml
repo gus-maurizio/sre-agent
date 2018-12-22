@@ -1,8 +1,8 @@
 # config of runtime
 applicationid:                  MYAPPNAME
 moduleid:                       go.agent
-versionid:                      1.0.0.a
-environmentid:                  Production
+versionid:                      0.9.5.a
+environmentid:                  Testing
 #------------------------------------------------------------------------------#
 # log preferences
 logformat:                      JSON
@@ -43,99 +43,154 @@ metrichistory:                  30
 #------------------------------------------------------------------------------#
 # plugin configuration section
 plugins:
-  - pluginname:                 plugin_cpu
-    #measuredest:               ["udp",":4321"]
-    measuredest:                ["file","/tmp/sre-agent.cpu.measure.log"]
-    alertdest:                  ["file","/tmp/sre-agent.cpu.alert.log"]
-    warndest:                   ["file","/tmp/sre-agent.cpu.warn.log"]
-    pagedest:                   ["file","/tmp/sre-agent.cpu.page.log"]
-    #alertdest:                 ["udp","localhost:4322"]
-    #warndest:                  ["udp","localhost:4323"]
-    pluginmodule:               ./plugin_cpu/Darwin/plugin_cpu.so
-    plugintimetick:             500ms
-    pluginrollingwindow:	    [4000ms,8000ms]
-    pluginerrorthresh:          [2,6]
-    pluginwarnthresh:           [4,10]
-    pluginconfig:		        '
-                {
-                    "alert": 
-                    {
-                        "cpu":
-                        {
-                            "low":          0,
-                            "design":       60.0,
-                            "engineered":   80.0
-                        },
-                        "anycpu":
-                        {
-                            "low":          0,
-                            "design":       80.0,
-                            "engineered":   90.0
-                        }
-                    },
+#   - pluginname:                 plugin_cpu
+#     #measuredest:               ["udp",":4321"]
+#     measuredest:                ["file","/tmp/sre-agent.cpu.measure.log"]
+#     alertdest:                  ["file","/tmp/sre-agent.cpu.alert.log"]
+#     warndest:                   ["file","/tmp/sre-agent.cpu.warn.log"]
+#     pagedest:                   ["file","/tmp/sre-agent.cpu.page.log"]
+#     #alertdest:                 ["udp","localhost:4322"]
+#     #warndest:                  ["udp","localhost:4323"]
+#     pluginmodule:               ./plugin_cpu/Darwin/plugin_cpu.so
+#     plugintimetick:             500ms
+#     pluginrollingwindow:	    [4000ms,8000ms]
+#     pluginerrorthresh:          [2,6]
+#     pluginwarnthresh:           [4,10]
+#     pluginconfig:		        '
+#                 {
+#                     "alert": 
+#                     {
+#                         "cpu":
+#                         {
+#                             "low":          0,
+#                             "design":       60.0,
+#                             "engineered":   80.0
+#                         },
+#                         "anycpu":
+#                         {
+#                             "low":          0,
+#                             "design":       80.0,
+#                             "engineered":   90.0
+#                         }
+#                     },
 
-                    "plugin": 
-                    { 
-                        "config":
-                        {
-                            "cputimes":     10,
-                            "saturation":   75.0
-                        }
-                    }
-                }
-'
+#                     "plugin": 
+#                     { 
+#                         "config":
+#                         {
+#                             "cputimes":     10,
+#                             "saturation":   75.0
+#                         }
+#                     }
+#                 }
+# '
 #
 #
-  - pluginname:                 plugin_load
-    measuredest:                ["file","/tmp/sre-agent.load.measure.log"]
-    alertdest:                  ["udp",":4328"]
-    warndest:                   ["udp",":4329"]
-    pagedest:                   ["file","/tmp/sre-agent.mem.page.log"]
-    pluginmodule:               ./plugin_load/Darwin/plugin_load.so
-    plugintimetick:             10s
-    pluginrollingwindow:        [1m,2m]
-    pluginerrorthresh:          [3,8]
-    pluginwarnthresh:           [5,8]
-    pluginconfig:               '
-				{
-					"alert": 
-					{
-						"load":
-						{
-							"low": 			2,
-							"design": 		60.0,
-							"engineered":	80.0
-						}
-					}
-				}
-'
+#   - pluginname:                 plugin_load
+#     measuredest:                ["file","/tmp/sre-agent.load.measure.log"]
+#     alertdest:                  ["udp",":4328"]
+#     warndest:                   ["udp",":4329"]
+#     pagedest:                   ["file","/tmp/sre-agent.mem.page.log"]
+#     pluginmodule:               ./plugin_load/Darwin/plugin_load.so
+#     plugintimetick:             10s
+#     pluginrollingwindow:        [1m,2m]
+#     pluginerrorthresh:          [3,8]
+#     pluginwarnthresh:           [5,8]
+#     pluginconfig:               '
+# 				{
+# 					"alert": 
+# 					{
+# 						"load":
+# 						{
+# 							"low": 			2,
+# 							"design": 		60.0,
+# 							"engineered":	80.0
+# 						}
+# 					}
+# 				}
+# '
 #
 #
-  - pluginname:                 plugin_mem
-    measuredest:                ["file","/tmp/sre-agent.mem.measure.log"]
-    alertdest:                  ["file","/tmp/sre-agent.mem.alert.log"]
-    warndest:                   ["file","/tmp/sre-agent.mem.warn.log"]
+  - pluginname:                 plugin_disk
+    measuredest:                ["file","/tmp/sre-agent.disk.measure.log"]
+    alertdest:                  ["file","/tmp/sre-agent.disk.alert.log"]
+    warndest:                   ["file","/tmp/sre-agent.disk.warn.log"]
     #alertdest:                  ["udp",":4326"]
     #warndest:                   ["udp",":4327"]
-    pluginmodule:               ./plugin_mem/Darwin/plugin_mem.so
-    plugintimetick:             20s
-    pluginrollingwindow:        [1m,5m]
-    pluginerrorthresh:          [2,8]
-    pluginwarnthresh:           [3,12]
+    pluginmodule:               ./plugin_disk/Darwin/plugin_disk.so
+    plugintimetick:             30s
+    pluginrollingwindow:        [5m,15m]
+    pluginerrorthresh:          [2,5]
+    pluginwarnthresh:           [2,10]
     pluginconfig:               '
                 {
                     "alert": 
                     {
-                        "mem":
+                        "disk":
                         {
                             "low":          10, 
-                            "design":       70.0, 
+                            "design":       70.plugin_filesystem, 
                             "engineered":   90.0
                         }
                     }
                 }
 '
+  - pluginname:                 plugin_filesystem
+    measuredest:                ["file","/tmp/sre-agent.fs.measure.log"]
+    alertdest:                  ["file","/tmp/sre-agent.fs.alert.log"]
+    warndest:                   ["file","/tmp/sre-agent.fs.warn.log"]
+    #alertdest:                  ["udp",":4326"]
+    #warndest:                   ["udp",":4327"]
+    pluginmodule:               ./plugin_filesystem/Darwin/plugin_filesystem.so
+    plugintimetick:             1m
+    pluginrollingwindow:        [10m,30m]
+    pluginerrorthresh:          [2,5]
+    pluginwarnthresh:           [3,10]
+    pluginconfig:               '
+                {
+                    "alert": 
+                    {
+                        "/":
+                        {
+                            "low":          2,
+                            "design":       46.0,
+                            "engineered":   77.0
+                        },
+                        "/Volumes/TOSHIBA-001":
+                        {
+                            "low":          22,
+                            "design":       40.0,
+                            "engineered":   75.0
+                        }
+                    }
+                }
+'
 #
+#
+#   - pluginname:                 plugin_mem
+#     measuredest:                ["file","/tmp/sre-agent.mem.measure.log"]
+#     alertdest:                  ["file","/tmp/sre-agent.mem.alert.log"]
+#     warndest:                   ["file","/tmp/sre-agent.mem.warn.log"]
+#     #alertdest:                  ["udp",":4326"]
+#     #warndest:                   ["udp",":4327"]
+#     pluginmodule:               ./plugin_mem/Darwin/plugin_mem.so
+#     plugintimetick:             20s
+#     pluginrollingwindow:        [1m,5m]
+#     pluginerrorthresh:          [2,8]
+#     pluginwarnthresh:           [3,12]
+#     pluginconfig:               '
+#                 {
+#                     "alert": 
+#                     {
+#                         "mem":
+#                         {
+#                             "low":          10, 
+#                             "design":       70.0, 
+#                             "engineered":   90.0
+#                         }
+#                     }
+#                 }
+# '
 #
 #------------------------------------------------------------------------------#
 #

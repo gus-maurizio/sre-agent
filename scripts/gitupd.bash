@@ -1,4 +1,4 @@
-#!/usrbin/env bash
+#!/usr/bin/env bash
 for i in plug* sre-agent
 do
   echo Updating GIT $i

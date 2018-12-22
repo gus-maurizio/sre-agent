@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 go build -buildmode=plugin -o $GOPATH/src/github.com/gus-maurizio/plugin_mem/$(uname -s)/plugin_mem.so $GOPATH/src/github.com/gus-maurizio/plugin_mem/plugin_mem.go
 repo=github.com/gus-maurizio
-pack="plugin_mem plugin_cpu plugin_disk plugin_load"
+pack="plugin_mem plugin_cpu plugin_disk plugin_filesystem plugin_load"
 packages=${1:-$pack}
 mod="sre-agent"
 mainmod=${2:-$mod}
