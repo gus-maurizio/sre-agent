@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-DDD="$(date +%Y.%j)"
+DDD="$(date +%Y.%j.%s)"
 for i in plug* sre-agent
 do
   echo Updating GIT $i
@@ -9,5 +9,6 @@ do
   echo git tag "${1:-0.9.$DDD}"
   git tag "${1:-0.9.$DDD}"
   git push --follow-tags
+  git push --tags
   cd ..
 done
