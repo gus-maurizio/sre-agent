@@ -6,6 +6,7 @@ do
   cd $i
   git add -A
   git commit -m "$(date)"
+  echo git tag "${1:-0.9.$DDD}"
   git tag "${1:-0.9.$DDD}"
   git push --follow-tags
   cd ..
