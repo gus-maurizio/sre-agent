@@ -192,5 +192,31 @@ plugins:
 #                 }
 # '
 #
+  - pluginname:                 plugin_net
+    measuredest:                ["file","/tmp/sre-agent.net.measure.log"]
+    alertdest:                  ["file","/tmp/sre-agent.net.alert.log"]
+    warndest:                   ["file","/tmp/sre-agent.net.warn.log"]
+    #alertdest:                  ["udp",":4326"]
+    #warndest:                   ["udp","`"]
+    pluginmodule:               ./plugin_net/Darwin/plugin_net.so
+    plugintimetick:             1s
+    pluginrollingwindow:        [10s,5m]
+    pluginerrorthresh:          [2,10]
+    pluginwarnthresh:           [3,20]
+    pluginconfig:               '
+                {
+                    "alert": 
+                    {
+                        "drop":
+                        {
+                            "low":          0.00,
+                            "design":       1.0,
+                            "engineered":   10.0
+                        }
+                    }
+                }
+'
+#
+#
 #------------------------------------------------------------------------------#
 #
