@@ -1,8 +1,8 @@
 # config of runtime
 applicationid:                  MYAPPNAME
 moduleid:                       go.agent
-versionid:                      1.0.0.a
-environmentid:                  Production
+versionid:                      0.9.5.a
+environmentid:                  Testing
 #------------------------------------------------------------------------------#
 # log preferences
 logformat:                      JSON
@@ -111,6 +111,62 @@ plugins:
 '
 #
 #
+  - pluginname:                 plugin_disk
+    measuredest:                ["file","/tmp/sre-agent.disk.measure.log"]
+    alertdest:                  ["file","/tmp/sre-agent.disk.alert.log"]
+    warndest:                   ["file","/tmp/sre-agent.disk.warn.log"]
+    #alertdest:                  ["udp",":4326"]
+    #warndest:                   ["udp",":4327"]
+    pluginmodule:               ./plugin_disk/Linux/plugin_disk.so
+    plugintimetick:             30s
+    pluginrollingwindow:        [5m,15m]
+    pluginerrorthresh:          [2,5]
+    pluginwarnthresh:           [2,10]
+    pluginconfig:               '
+                {
+                    "alert": 
+                    {
+                        "disk":
+                        {
+                            "low":          10, 
+                            "design":       70.plugin_filesystem, 
+                            "engineered":   90.0
+                        }
+                    }
+                }
+'
+  - pluginname:                 plugin_filesystem
+    measuredest:                ["file","/tmp/sre-agent.fs.measure.log"]
+    alertdest:                  ["file","/tmp/sre-agent.fs.alert.log"]
+    warndest:                   ["file","/tmp/sre-agent.fs.warn.log"]
+    #alertdest:                  ["udp",":4326"]
+    #warndest:                   ["udp",":4327"]
+    pluginmodule:               ./plugin_filesystem/Linux/plugin_filesystem.so
+    plugintimetick:             1m
+    pluginrollingwindow:        [10m,30m]
+    pluginerrorthresh:          [2,5]
+    pluginwarnthresh:           [3,10]
+    pluginconfig:               '
+                {
+                    "alert": 
+                    {
+                        "/":
+                        {
+                            "low":          2,
+                            "design":       46.0,
+                            "engineered":   77.0
+                        },
+                        "/Volumes/TOSHIBA-001":
+                        {
+                            "low":          22,
+                            "design":       40.0,
+                            "engineered":   75.0
+                        }
+                    }
+                }
+'
+#
+#
   - pluginname:                 plugin_mem
     measuredest:                ["file","/tmp/sre-agent.mem.measure.log"]
     alertdest:                  ["file","/tmp/sre-agent.mem.alert.log"]
@@ -136,6 +192,44 @@ plugins:
                 }
 '
 #
+  - pluginname:                 plugin_net
+    measuredest:                ["file","/tmp/sre-agent.net.measure.log"]
+    alertdest:                  ["file","/tmp/sre-agent.net.alert.log"]
+    warndest:                   ["file","/tmp/sre-agent.net.warn.log"]
+    #alertdest:                  ["udp",":4326"]
+    #warndest:                   ["udp","`"]
+    pluginmodule:               ./plugin_net/Linux/plugin_net.so
+    plugintimetick:             1s
+    pluginrollingwindow:        [10s,5m]
+    pluginerrorthresh:          [2,10]
+    pluginwarnthresh:           [3,20]
+    pluginconfig:               '
+                {
+                    "alert": 
+                    {
+                        "drop":
+                        {
+                            "low":          0.00,
+                            "design":       1.0,
+                            "engineered":   10.0
+                        }
+                    }
+                }
+'
+#
+#
+  - pluginname:                 plugin_connections
+    measuredest:                ["file","/tmp/sre-agent.conn.measure.log"]
+    alertdest:                  ["file","/tmp/sre-agent.conn.alert.log"]
+    warndest:                   ["file","/tmp/sre-agent.conn.warn.log"]
+    #alertdest:                  ["udp",":4326"]
+    #warndest:                   ["udp","`"]
+    pluginmodule:               ./plugin_connections/Linux/plugin_connections.so
+    plugintimetick:             10s
+    pluginrollingwindow:        [10s,10s]
+    pluginerrorthresh:          [1,1]
+    pluginwarnthresh:           [1,1]
+    pluginconfig:               '{}'
 #
 #------------------------------------------------------------------------------#
 #
