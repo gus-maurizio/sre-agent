@@ -1,5 +1,45 @@
-version: "3"
+version: "3.6"
 services:
+#   elasticsearch:
+#     image:            docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+#     container_name:   elasticsearch
+#     hostname:         elasticsearch
+#     environment:
+#       - node.name=es01
+#       - cluster.name=docker-cluster
+#       - bootstrap.memory_lock=true
+#       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+#     ulimits:
+#       nproc:    65535
+#       memlock:
+#         soft:   -1
+#         hard:   -1
+#     cap_add:
+#       - ALL
+#     privileged:       true
+#     volumes:
+#       - esdata1:/usr/share/elasticsearch/data
+#     ports:
+#       - 9200:9200
+#       - 9300:9300
+# #
+#   kibana:
+#     image:                docker.elastic.co/kibana/kibana-oss:6.5.4
+#     container_name:       kibana
+#     hostname:             kibana
+#     environment:
+#       SERVER_NAME:        localhost
+#       ELASTICSEARCH_URL:  http://elasticsearch:9200/
+#     ports:
+#       - 5601:5601
+#     ulimits:
+#       nproc: 65535
+#       memlock:
+#         soft: -1
+#         hard: -1
+#     cap_add:
+#       - ALL
+#
   ubuntu-agent:
     image:              ubuntu:18.04
     container_name:     ubuntu-agent
@@ -40,25 +80,9 @@ services:
     volumes:
       - grafdata:/var/lib/grafana
 #
-  # es:
-  #   image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
-  #   container_name: es
-  #   environment:
-  #     - discovery.type=single-node
-  #   ports:
-  #     - 9200:9200
-  #   volumes:
-  #     - esdata1:/usr/share/elasticsearch/data
-  # web:
-  #   image: prakhar1989/foodtrucks-web
-  #   command: python app.py
-  #   depends_on:
-  #     - es
-  #   ports:
-  #     - 5000:5000
-  #   volumes:
-  #     - ./flask-app:/opt/flask-app
 volumes:
+    esdata1:
+      driver: local
     promdata:
       driver: local
     grafdata:
