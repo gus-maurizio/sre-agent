@@ -7,7 +7,8 @@ mod="sre-agent"
 mainmod=${2:-$mod}
 
 OSTYPE=$(uname -s)
-[ "$OSTYPE" == "Linux"  ] && [ "$(cat /etc/os-release|grep ^ID=)" == "ID=alpine" ] && OSTYPE=Alpine
+MOSTYPE=$(uname -s)
+[ "$MOSTYPE" == "Linux"  ] && [ "$(cat /etc/os-release|grep ^ID=)" == "ID=alpine" ] && MOSTYPE=Alpine
 
 echo Building for $OSTYPE
 
@@ -20,9 +21,10 @@ done
 for i in $mainmod
 do
   echo Building $i
-  echo go build -o $GOPATH/src/$repo/$i/$OSTYPE/$i $GOPATH/src/$repo/$i
-  go build -o $GOPATH/src/$repo/$i/$OSTYPE/$i $GOPATH/src/$repo/$i
+  echo go build -o $GOPATH/src/$repo/$i/$MOSTYPE/$i $GOPATH/src/$repo/$i
+  go build -o $GOPATH/src/$repo/$i/$MOSTYPE/$i $GOPATH/src/$repo/$i
 done
 find $GOPATH/src/github.com/gus-maurizio/*/$OSTYPE -type f|xargs file
 [ "$(uname -s)" == "Darwin" ] && find $GOPATH/src/github.com/gus-maurizio/*/$OSTYPE -type f | xargs -I {} otool -L {}
 [ "$(uname -s)" == "Linux"  ] && find $GOPATH/src/github.com/gus-maurizio/*/$OSTYPE -type f | xargs -I {} ldd {}
+[ "$(uname -s)" == "Linux"  ] && find $GOPATH/src/github.com/gus-maurizio/*/$MOSTYPE -type f | xargs -I {} ldd {}
