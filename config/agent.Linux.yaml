@@ -245,6 +245,15 @@ plugins:
     pluginwarnthresh:           [3,15]
     pluginconfig:               '
                 {
+                    "config": 
+                    {
+                        "mq":
+                        {
+                            "protocol":     "https",
+                            "authoriz":     "YWRtaW46cGFzc3cwcmQ=",
+                            "url":          "localhost:9443/ibmmq/rest/v1/admin/qmgr/IBMQM1/queue?name=DEV.QUEUE*&status=*"     
+                        }
+                    },
                     "alert": 
                     {
                         "DEV.QUEUE.1":
