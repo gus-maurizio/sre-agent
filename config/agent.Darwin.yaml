@@ -197,7 +197,7 @@ plugins:
     alertdest:                  ["file","/tmp/sre-agent.net.alert.log"]
     warndest:                   ["file","/tmp/sre-agent.net.warn.log"]
     #alertdest:                  ["udp",":4326"]
-    #warndest:                   ["udp","`"]
+    #warndest:                   ["udp",""]
     pluginmodule:               ./plugin_net/Darwin/plugin_net.so
     plugintimetick:             1s
     pluginrollingwindow:        [10s,5m]
@@ -223,13 +223,45 @@ plugins:
     alertdest:                  ["file","/tmp/sre-agent.conn.alert.log"]
     warndest:                   ["file","/tmp/sre-agent.conn.warn.log"]
     #alertdest:                  ["udp",":4326"]
-    #warndest:                   ["udp","`"]
+    #warndest:                   ["udp",""]
     pluginmodule:               ./plugin_connections/Darwin/plugin_connections.so
     plugintimetick:             10s
     pluginrollingwindow:        [10s,10s]
     pluginerrorthresh:          [1,1]
     pluginwarnthresh:           [1,1]
     pluginconfig:               '{}'
+#
+#
+  - pluginname:                 plugin_ibmmq
+    measuredest:                ["file","/tmp/sre-agent.mq.measure.log"]
+    alertdest:                  ["file","/tmp/sre-agent.mq.alert.log"]
+    warndest:                   ["file","/tmp/sre-agent.mq.warn.log"]
+    #alertdest:                  ["udp",":4326"]
+    #warndest:                   ["udp",""]
+    pluginmodule:               ./plugin_ibmmq/Darwin/plugin_ibmmq.so
+    plugintimetick:             500ms
+    pluginrollingwindow:        [5s,30s]
+    pluginerrorthresh:          [4,10]
+    pluginwarnthresh:           [3,15]
+    pluginconfig:               '
+                {
+                    "alert": 
+                    {
+                        "DEV.QUEUE.1":
+                        {
+                            "low":          0,
+                            "design":       46.0,
+                            "engineered":   77.0
+                        },
+                        "DEV.QUEUE.2":
+                        {
+                            "low":          0,
+                            "design":       10.0,
+                            "engineered":   175.0
+                        }
+                    }
+                }
+'
 #
 #------------------------------------------------------------------------------#
 #
