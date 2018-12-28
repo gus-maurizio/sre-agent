@@ -1,0 +1,18 @@
+[Unit]
+Description=SRE-AGENT for observability
+After=network.target
+StartLimitBurst=5
+StartLimitIntervalSec=10
+
+[Service]
+Type=simple
+PIDFile=/opt/sreagent/run/sreagent.pid
+Restart=always
+RestartSec=1
+User=sreagent
+Group=sreagent
+WorkingDirectory=/opt/sreagent
+ExecStart=/opt/sreagent/bin/sre-agent -f /opt/sreagent/config/agent.yaml >> /opt/sreagent/log/daemon.stdout.log 2>/opt/sreagent/log/daemon.stderr.log
+
+[Install]
+WantedBy=multi-user.target
