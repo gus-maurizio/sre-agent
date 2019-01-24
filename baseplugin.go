@@ -60,10 +60,10 @@ func pluginLauncher(myName string, myContext types.Context, ticker *time.Ticker,
 				MapPlugState[myName].WarnCount  += 1
 				if MapPlugState[myName].WarnCount == 2147483647 { MapPlugState[myName].WarnCount = 0 }
 				if MapPlugState[myName].WarnFile {
-					fmt.Fprintf(MapPlugState[myName].WarnHandle, alertformat, mymeasuretime, myName, MapPlugState[myName].AlertMsg, 
+					fmt.Fprintf(MapPlugState[myName].WarnHandle, alertformat, t, t.Unix(), mymeasuretime, myName, MapPlugState[myName].AlertMsg, 
 								MapPlugState[myName].AlertLvl, MapPlugState[myName].AlertError, measuredata, jsonContext)
 				} else {
-					fmt.Fprintf(MapPlugState[myName].WarnConn, alertformat, mymeasuretime, myName, MapPlugState[myName].AlertMsg,
+					fmt.Fprintf(MapPlugState[myName].WarnConn,   alertformat, t, t.Unix(), mymeasuretime, myName, MapPlugState[myName].AlertMsg,
 								MapPlugState[myName].AlertLvl, MapPlugState[myName].AlertError, measuredata, jsonContext)
 				}
 			} else {
@@ -74,7 +74,7 @@ func pluginLauncher(myName string, myContext types.Context, ticker *time.Ticker,
 					fmt.Fprintf(MapPlugState[myName].AlertHandle, alertformat, t, t.Unix(), mymeasuretime, myName, MapPlugState[myName].AlertMsg, 
 								MapPlugState[myName].AlertLvl, MapPlugState[myName].AlertError, measuredata, jsonContext)
 				} else {
-					fmt.Fprintf(MapPlugState[myName].AlertConn, alertformat, t, t.Unix(), mymeasuretime, myName, MapPlugState[myName].AlertMsg,
+					fmt.Fprintf(MapPlugState[myName].AlertConn, alertformat,   t, t.Unix(), mymeasuretime, myName, MapPlugState[myName].AlertMsg,
 								MapPlugState[myName].AlertLvl, MapPlugState[myName].AlertError, measuredata, jsonContext)
 				}
 			}
