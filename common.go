@@ -142,6 +142,10 @@ func processConfig() {
 		//--------------------------------------------------------------------------//
 		// Initialize the Plugin State
 		MapPlugState[Config.Plugins[i].PluginName]	= &types.PluginState{	
+			At:				"",
+			AtUnix:			0,
+			AtMeasure:		0.0,
+
 			Alert:			false,
 			AlertFunction:	false,
 			MeasureCount:	0,

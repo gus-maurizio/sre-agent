@@ -30,7 +30,12 @@ func pluginLauncher(myName string, myContext types.Context, ticker *time.Ticker,
 		MapPlugState[myName].Warning 	= false
 
 		// Now do the measurements and save results in the history circular buffer
-		measuredata, _, mymeasuretime := measure()
+		measuredata, _, mymeasuretime 	:= measure()
+
+		MapPlugState[myName].At			= fmt.Sprintf("%s",t)
+		MapPlugState[myName].AtUnix		= t.Unix()
+		MapPlugState[myName].AtMeasure	= mymeasuretime
+
 		MapHistory[myName].Metric.PushPop(fmt.Sprintf("{\"plugin\": \"%s\", \"at\": \"%s\", \"unixts\": %d, \"measurets\": %f, \"metric\": %s}", myName, t, t.Unix(), mymeasuretime, string(measuredata)))
 
 		if MapPlugState[myName].AlertFunction {
@@ -47,7 +52,7 @@ func pluginLauncher(myName string, myContext types.Context, ticker *time.Ticker,
 		// Did we get an alert
 		rollwBits := uint8(0)		// last bit (b'0000 0001') for warn and previous bit for alert (b'0000 0010')
 		if MapPlugState[myName].Alert {
-			alertformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"alertmsg\": %s, \"alertlvl\": %s, \"error\": %s, \"measure\": %s, \"context\": %s}\n"
+			alertformat := "{\"at\": \"%s\", \"unixts\": %d, \"timestamp\": %f, \"plugin\": \"%s\", \"alertmsg\": %s, \"alertlvl\": %s, \"error\": %s, \"measure\": %s, \"context\": %s}\n"
 			if MapPlugState[myName].AlertLvl == "warn" {
 				// it is a warning, so clear the alert flag and post to warning
 				MapPlugState[myName].Alert 		= false
@@ -66,10 +71,10 @@ func pluginLauncher(myName string, myContext types.Context, ticker *time.Ticker,
 				MapPlugState[myName].AlertCount += 1
 				if MapPlugState[myName].AlertCount == 2147483647 { MapPlugState[myName].AlertCount = 0 }
 				if MapPlugState[myName].AlertFile {
-					fmt.Fprintf(MapPlugState[myName].AlertHandle, alertformat, mymeasuretime, myName, MapPlugState[myName].AlertMsg, 
+					fmt.Fprintf(MapPlugState[myName].AlertHandle, alertformat, t, t.Unix(), mymeasuretime, myName, MapPlugState[myName].AlertMsg, 
 								MapPlugState[myName].AlertLvl, MapPlugState[myName].AlertError, measuredata, jsonContext)
 				} else {
-					fmt.Fprintf(MapPlugState[myName].AlertConn, alertformat, mymeasuretime, myName, MapPlugState[myName].AlertMsg,
+					fmt.Fprintf(MapPlugState[myName].AlertConn, alertformat, t, t.Unix(), mymeasuretime, myName, MapPlugState[myName].AlertMsg,
 								MapPlugState[myName].AlertLvl, MapPlugState[myName].AlertError, measuredata, jsonContext)
 				}
 			}
@@ -92,13 +97,13 @@ func pluginLauncher(myName string, myContext types.Context, ticker *time.Ticker,
 			if  MapPlugState[myName].WAlerts[rollIdx] >= MapPlugState[myName].TAlerts[rollIdx] ||
 			    MapPlugState[myName].WWarns[rollIdx]  >= MapPlugState[myName].TWarns[rollIdx] {
 				MapPlugState[myName].PageCount += 1
-				pageformat := "{\"timestamp\": %f, \"plugin\": \"%s\", \"window\": %v, \"context\": %s}\n"
+				pageformat := "{\"at\": \"%s\", \"unixts\": %d, \"timestamp\": %f, \"plugin\": \"%s\", \"window\": %v, \"context\": %s}\n"
 
 				if MapPlugState[myName].PageCount == 2147483647 { MapPlugState[myName].PageCount = 0 }
 				if MapPlugState[myName].PageFile {
-					fmt.Fprintf(MapPlugState[myName].PageHandle, pageformat, mymeasuretime, myName, rollIdx, jsonContext)
+					fmt.Fprintf(MapPlugState[myName].PageHandle, pageformat, t, t.Unix(), mymeasuretime, myName, rollIdx, jsonContext)
 				} else {
-					fmt.Fprintf(MapPlugState[myName].PageConn,   pageformat, mymeasuretime, myName, rollIdx, jsonContext)
+					fmt.Fprintf(MapPlugState[myName].PageConn,   pageformat, t, t.Unix(), mymeasuretime, myName, rollIdx, jsonContext)
 				}
 				pluginLogger.WithFields(log.Fields{"p": myName, 
 					"window":	rollIdx,

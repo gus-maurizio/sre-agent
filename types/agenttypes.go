@@ -118,6 +118,10 @@ type PluginHistory struct {
 
 
 type PluginState struct {
+	At				string		`json:"at"`
+	AtUnix			int64		`json:"atunix"`
+	AtMeasure		float64		`json:"atmeasure"`
+
 	AlertFunction	bool		`json:"alertfunction"`
 	AlertMsg		string		`json:"alertmsg"`
 	AlertLvl		string		`json:"alertlvl"`

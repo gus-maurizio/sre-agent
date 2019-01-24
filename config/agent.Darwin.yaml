@@ -1,7 +1,7 @@
 # config of runtime
 applicationid:                  MYAPPNAME
 moduleid:                       go.sre-agent
-versionid:                      0.9.7.a
+versionid:                      0.9.9.a
 environmentid:                  Testing
 #------------------------------------------------------------------------------#
 # log preferences
@@ -11,7 +11,7 @@ prettyprint:                    true
 disabletimestamp:               false
 #------------------------------------------------------------------------------#
 # Prometheus metric expose
-prometheusport:                 9000
+prometheusport:                 8899
 metrichandle:                   /metrics
 healthhandle:                   /health
 detailhandle:                   /detail/
@@ -52,8 +52,8 @@ plugins:
     #alertdest:                 ["udp","localhost:4322"]
     #warndest:                  ["udp","localhost:4323"]
     pluginmodule:               ./plugin_cpu/Darwin/plugin_cpu.so
-    plugintimetick:             500ms
-    pluginrollingwindow:	    [4000ms,8000ms]
+    plugintimetick:             5s
+    pluginrollingwindow:	    [60s,300s]
     pluginerrorthresh:          [2,6]
     pluginwarnthresh:           [4,10]
     pluginconfig:		        '
@@ -92,7 +92,7 @@ plugins:
     warndest:                   ["udp",":4329"]
     pagedest:                   ["file","/tmp/sre-agent.mem.page.log"]
     pluginmodule:               ./plugin_load/Darwin/plugin_load.so
-    plugintimetick:             10s
+    plugintimetick:             20s
     pluginrollingwindow:        [1m,2m]
     pluginerrorthresh:          [3,8]
     pluginwarnthresh:           [5,8]
@@ -118,7 +118,7 @@ plugins:
     #alertdest:                  ["udp",":4326"]
     #warndest:                   ["udp",":4327"]
     pluginmodule:               ./plugin_disk/Darwin/plugin_disk.so
-    plugintimetick:             30s
+    plugintimetick:             1m
     pluginrollingwindow:        [5m,15m]
     pluginerrorthresh:          [2,5]
     pluginwarnthresh:           [2,10]
@@ -128,8 +128,8 @@ plugins:
                     {
                         "disk":
                         {
-                            "low":          10, 
-                            "design":       70.plugin_filesystem, 
+                            "low":          10.0, 
+                            "design":       70.0, 
                             "engineered":   90.0
                         }
                     }
@@ -142,8 +142,8 @@ plugins:
     #alertdest:                  ["udp",":4326"]
     #warndest:                   ["udp",":4327"]
     pluginmodule:               ./plugin_filesystem/Darwin/plugin_filesystem.so
-    plugintimetick:             1m
-    pluginrollingwindow:        [10m,30m]
+    plugintimetick:             5m
+    pluginrollingwindow:        [20m,60m]
     pluginerrorthresh:          [2,5]
     pluginwarnthresh:           [3,10]
     pluginconfig:               '
@@ -174,7 +174,7 @@ plugins:
     #alertdest:                  ["udp",":4326"]
     #warndest:                   ["udp",":4327"]
     pluginmodule:               ./plugin_mem/Darwin/plugin_mem.so
-    plugintimetick:             20s
+    plugintimetick:             30s
     pluginrollingwindow:        [1m,5m]
     pluginerrorthresh:          [2,8]
     pluginwarnthresh:           [3,12]
@@ -199,8 +199,8 @@ plugins:
     #alertdest:                  ["udp",":4326"]
     #warndest:                   ["udp",""]
     pluginmodule:               ./plugin_net/Darwin/plugin_net.so
-    plugintimetick:             1s
-    pluginrollingwindow:        [10s,5m]
+    plugintimetick:             10s
+    pluginrollingwindow:        [1m,5m]
     pluginerrorthresh:          [2,10]
     pluginwarnthresh:           [3,20]
     pluginconfig:               '
@@ -225,8 +225,8 @@ plugins:
     #alertdest:                  ["udp",":4326"]
     #warndest:                   ["udp",""]
     pluginmodule:               ./plugin_connections/Darwin/plugin_connections.so
-    plugintimetick:             10s
-    pluginrollingwindow:        [10s,10s]
+    plugintimetick:             1m
+    pluginrollingwindow:        [1m,1m]
     pluginerrorthresh:          [1,1]
     pluginwarnthresh:           [1,1]
     pluginconfig:               '{}'
